@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* --- THÈME & IDENTITÉ VISUELLE : ÂGE D'OR DU TANGO (BUENOS AIRES 1950) --- */
+
+:root {
+  --color-tango-bg: #120b0a;
+  --color-tango-mahogany: #1b1210;
+  --color-tango-mahogany-light: #261a17;
+  --color-tango-gold: #d4af37;
+  --color-tango-gold-light: #f5d77f;
+  --color-tango-gold-dark: #987822;
+  --color-tango-carmine: #8e1c2e;
+  --color-tango-carmine-dark: #5e0f1c;
+  --color-tango-cream: #fbf7ee;
+  --color-tango-celeste: #5b8ea6;
+}
+
+/* Base styles */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #120b0a;
+  color: #f7f2e7;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Typographies thématiques haute lisibilité */
+.font-display {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+.font-tango-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Effets & Finitions Âge d'Or */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #fce59e 0%, #d4af37 45%, #b1872b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.carmine-gradient-text {
+  background: linear-gradient(135deg, #f87171 0%, #dc2626 50%, #991b1b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-filigree {
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.08), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.ticket-border {
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+}
+
+/* Leaflet fix for z-index with sticky navigation */
+.leaflet-pane {
+  z-index: 10 !important;
+}
+.leaflet-top, .leaflet-bottom {
+  z-index: 20 !important;
+}
+
+/* Personnalisation Leaflet rétro Buenos Aires */
+.leaflet-popup-content-wrapper {
+  background: #1b1210 !important;
+  color: #f7f2e7 !important;
+  border: 1px solid #d4af37 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 8px rgba(212, 175, 55, 0.3) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: #1b1210 !important;
+  border: 1px solid #d4af37 !important;
+}
+
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  background-color: #120b0a !important;
+}
+
+/* Scrollbar dorée vintage */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #150d0c;
+}
+::-webkit-scrollbar-thumb {
+  background: #3e2823;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}

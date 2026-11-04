@@ -1,0 +1,31 @@
+{
+  "name": "Tango Itinéraire — Milongas sur la Route",
+  "short_name": "Tango Itinéraire",
+  "description": "Trouvez les milongas, festivals et pratiques de tango argentin sur votre route de vacances ou de weekend.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#b91c1c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "navigation", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Rechercher un trajet",
+      "url": "/",
+      "description": "Calculer un itinéraire avec corridor tango"
+    },
+    {
+      "name": "Mes favoris",
+      "url": "/?view=favorites",
+      "description": "Consulter les milongas enregistrées pour ma route"
+    }
+  ]
+}
