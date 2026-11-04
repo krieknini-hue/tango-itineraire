@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import type { TangoEvent } from '../types/tango';
-import { INITIAL_MOCK_EVENTS } from '../data/mockEvents';
+import { loadEvents } from './eventsService';
 
 // Convertit un enregistrement SQL Supabase en objet TypeScript TangoEvent
 function mapRowToTangoEvent(row: Record<string, unknown>): TangoEvent {
@@ -59,10 +59,13 @@ export async function fetchEventsFromDatabase(targetDate?: string): Promise<Tang
     }
   }
 
-  // Fallback initial
-  return targetDate
-    ? INITIAL_MOCK_EVENTS.filter((e) => e.date === targetDate)
-    : INITIAL_MOCK_EVENTS;
+  // Fallback local via les événements scrapés réels
+  try {
+    const all = await loadEvents();
+    return targetDate ? all.filter((e) => e.date === targetDate) : all;
+  } catch {
+    return [];
+  }
 }
 
 // Signale une annulation d'urgence (canal d'alerte instantanée Asso)

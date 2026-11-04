@@ -32,12 +32,13 @@ Ce document centralise l'état d'avancement, l'historique des évolutions, la st
   - Suppression totale des éléments hors-écran sur petits smartphones (`max-width: 100vw`, `overflow-x: hidden`, barres responsives).
 - **Didacticiel Rapide en 3 Étapes (`OnboardingModal.tsx`) :**
   - Guide visuel express en 3 écrans (*1. Trace ta route • 2. Confort danseur & Favoris hors-ligne • 3. Guidage 1-clic & Zéro Faux Plan*) qui s'affiche à la première ouverture et reste accessible à tout moment via le bouton **`❓ Guide`**.
-- **Barre de Sélection Mode Test (`LabSelectorBar.tsx`) :**
-  - Permet de basculer en direct via **2 menus déroulants** en haut de l'écran entre :
-    1. **🛣️ Tunnel 1 — GPS 3 Étapes (`TunnelGpsWizard.tsx`) :** Parcours guidé étape par étape (*1. Où vas-tu ? ➔ 2. Choix Route & Détour par gros pavés ➔ 3. Carte + Carrousel d'escales une par une*).
-    2. **🎟️ Tunnel 2 — Guichet Express (`TunnelGuichetExpress.tsx`) :** Question d'accueil simple (*« Sur la route »* vs *« Autour d'une ville »*), saisie express puis résultat plein écran avec barre de trajet repliée.
-    3. **🚘 Tunnel 3 — Cockpit Autoradio / CarPlay (`TunnelCockpitCarplay.tsx`) :** Interface spécial conduite à gros boutons XXL, focus sur la **Prochaine Escale Tango** avec flèches *Précédente / Suivante* et lancement Waze/Maps direct.
-    4. **📜 Vue Complète Classique :** L'interface complète d'origine pour comparaison.
+- **Barre de Sélection Mode Test en Tiroir (`LabSelectorBar.tsx`) :**
+  - Accessible via un simple bouton **Roue Dentée (`⚙️`)** dans la barre supérieure (aucun bandeau encombrant).
+  - Permet de basculer en 1 clic entre les 4 parcours (**🎟️ Tunnel Guichet Express par défaut**, **🛣️ Tunnel GPS 3 Étapes**, **🚘 Mode Cockpit Autoradio**, **📜 Vue Classique**) et les 4 ambiances visuelles.
+- **Navigation Allégée par Tiroirs (`Navbar.tsx`, `TunnelGuichetExpress.tsx`, `EventCard.tsx`) :**
+  - **Tiroir Menu (`☰`)** : Regroupe *Mon Profil Danseur*, *Didacticiel*, *Connexion/Cotisation*, *Ligne Zéro Faux Plan* et *Espace Assos*.
+  - **Tiroir Options (`Sliders`)** : Regroupe sur l'écran de résultats le choix *Autoroute / Sans péage*, le *Rayon de détour*, la *Nuitée véhicule* et le *Mode Découverte*.
+  - **Tiroir Confort sur chaque billet (`Sol, Clim & DJ`)** : Allège la lecture des cartes de milongas en ne gardant à l'écran que la ville, le détour, le titre, l'horaire et les boutons Waze / Maps.
 - **4 Variantes de Design Commutables (`src/index.css`) :**
   1. **🕯️ Buenos Aires 1950 :** Acajou (`#1B1210`), Carmin (`#8E1C2E`) & Or patiné (`#D4AF37`).
   2. **🌙 Milonga de Minuit :** Bleu Nuit Puerto Madero, Cuivre & Magenta néon.

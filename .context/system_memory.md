@@ -54,3 +54,8 @@ Le projet est découpé en 3 conversations ciblées :
 3. **Design :** Identité visuelle tango Buenos Aires 1950, habillage complet des composants, ergonomie tactile mobile. (Terminé)
 
 Toutes les conversations partagent la même mémoire autonome via `.context/` et `MEMOIRE_PROJET.md`.
+
+- Profil local : src/services/profileManager.ts (cl� localStorage tango_profile_v1).
+
+## Modules
+- Nouveaux modules métier dans src/modules/ ; stores externes via useSyncExternalStore ; cibles tactiles >= 44px, inputs 16px.

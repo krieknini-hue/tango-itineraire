@@ -19,6 +19,11 @@ import {
 import type { TangoEvent } from '../types/tango';
 import { getGpsNavigationLinks } from '../services/routingService';
 import { useAuth } from '../context';
+import { ParityGauge } from './ParityGauge';
+import { NomadLogisticsBlock } from './NomadLogisticsBlock';
+import { AttendeesBlock } from './AttendeesBlock';
+import { CarpoolBlock } from './CarpoolBlock';
+import { formatEventDate } from '../modules/nearby';
 
 interface EventDetailModalProps {
   event: TangoEvent | null;
@@ -85,6 +90,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 <MapPin className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
                 {event.address}, <span className="font-semibold text-[#f7f2e7]">{event.city}</span> ({event.postalCode})
               </p>
+              <p className="text-xs text-[#fce59e] mt-1 font-semibold capitalize">
+                📅 {formatEventDate(event.date, true)} · {event.startTime}
+              </p>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -145,6 +153,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               <span className="text-[10px] text-amber-200/60 uppercase tracking-wider font-semibold">Registre Milonguero</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div className="sm:col-span-2">
+                <span className="text-[11px] text-amber-200/80 uppercase font-semibold tracking-wide block">Date</span>
+                <span className="font-bold text-[#fce59e] capitalize">📅 {formatEventDate(event.date, true)}</span>
+              </div>
               <div>
                 <span className="text-[11px] text-amber-200/80 uppercase font-semibold tracking-wide block">Horaires du bal</span>
                 <span className="font-semibold text-[#f7f2e7] font-mono">{event.startTime} à {event.endTime}</span>
@@ -248,6 +260,28 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
               </div>
             </div>
           </section>
+
+          {/* PARITÉ PRÉVISIONNELLE (Guides / Suiveurs / Double rôle) */}
+          {event.expected_attendance && (
+            <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner">
+              <div className="flex items-center justify-between mb-3 border-b border-[#d4af37]/20 pb-2">
+                <h3 className="text-xs font-bold font-display uppercase tracking-wide text-[#f5d77f]">
+                  ⚖️ Parité prévisionnelle
+                </h3>
+                <span className="text-[10px] text-amber-200/60 uppercase tracking-wider font-semibold">Indicatif</span>
+              </div>
+              <ParityGauge attendance={event.expected_attendance} />
+            </section>
+          )}
+
+          {/* HALTE NOMADE & BIVOUAC */}
+          {event.nomad_logistics && <NomadLogisticsBlock logistics={event.nomad_logistics} />}
+
+          {/* DANSEURS ANNONCÉS (masqué en Mode Découverte) */}
+          <AttendeesBlock attendees={event.attendees} />
+
+          {/* COVOIT' MILONGA : annonces directes WhatsApp / SMS */}
+          <CarpoolBlock event={event} />
 
           {/* BLOC 4 : EXPOSANTS & SHOPPING (CHAUSSURES DE TANGO) */}
           {event.exhibitors && event.exhibitors.length > 0 && (

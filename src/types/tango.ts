@@ -16,6 +16,33 @@ export interface Organizer {
   verified: boolean;
 }
 
+export type DanceRole = 'leader' | 'follower' | 'both';
+export type ProfileVisibility = 'friends' | 'public' | 'ghost';
+
+/** Logistique nomade : halte de nuit, sanitaires, eau */
+export interface NomadLogistics {
+  overnight_parking: boolean;
+  parking_notes: string;
+  toilets_accessible: boolean;
+  showers_available: boolean;
+  potable_water: boolean;
+}
+
+/** Affluence prévisionnelle par rôle (effectifs attendus) */
+export interface ExpectedAttendance {
+  leaders: number;
+  followers: number;
+  both: number;
+}
+
+/** Danseur inscrit/annoncé sur une fiche (données locales de démonstration) */
+export interface EventAttendee {
+  name: string;
+  city?: string;
+  role: DanceRole;
+  visibility: Exclude<ProfileVisibility, 'ghost'>;
+}
+
 export interface TangoEvent {
   id: string;
   title: string;
@@ -56,6 +83,13 @@ export interface TangoEvent {
   // Bloc Exposants
   exhibitors?: string[]; // ex: ["Chaussures Comme il Faut", "Robes Tangolera"]
   
+  // Halte Nomade & Bivouac (optionnel : fiche non renseignée = bloc masqué)
+  nomad_logistics?: NomadLogistics;
+
+  // Affluence prévisionnelle (jauge de parité) & danseurs annoncés
+  expected_attendance?: ExpectedAttendance;
+  attendees?: EventAttendee[];
+
   // Statut & Urgence
   status: 'confirmed' | 'cancelled';
   cancellationReason?: string;

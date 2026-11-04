@@ -1,24 +1,21 @@
 # Suivi du Projet — Tango Itinéraire
 
 ## État d'avancement général
-Le projet est désormais versionné sous Git, hébergé sur GitHub et déployé en ligne sur le cloud pour les tests mobiles 24h/24.
+Le projet intègre les nouvelles fonctionnalités (Jauge de parité, Logistique nomade, Profil danseur, Barre de filtres rapides) ainsi que le didacticiel interactif mis à jour en 4 étapes clés.
 
 ## Tâches terminées
-- [x] Initialisation du dépôt Git local et configuration de `.gitignore`.
-- [x] Création et synchronisation du dépôt public GitHub : [https://github.com/krieknini-hue/tango-itineraire](https://github.com/krieknini-hue/tango-itineraire).
-- [x] Configuration de `base: './'` dans `vite.config.ts`.
-- [x] Déploiement en ligne direct sur GitHub Pages (100% stable, 24h/24) : [https://krieknini-hue.github.io/tango-itineraire/](https://krieknini-hue.github.io/tango-itineraire/).
-- [x] Miroir cloud haute disponibilité sur Vercel : [https://spry-crystal-yioeutj.tmp.now](https://spry-crystal-yioeutj.tmp.now).
-- [x] **Mode Test Multi-Tunnels & Variantes Design** (`LabSelectorBar.tsx`) :
-  - `TunnelGpsWizard.tsx` : Tunnel GPS en 3 étapes guidées (1. Où vas-tu ➔ 2. Route & Détour par gros pavés ➔ 3. Carte + Carrousel d'escales).
-  - `TunnelGuichetExpress.tsx` : Tunnel Guichet Express en 2 clics (« Sur ma route » vs « Autour d'une ville ») + barre repliée.
-  - `TunnelCockpitCarplay.tsx` : Mode Cockpit Autoradio / CarPlay (boutons XXL, navigation escale par escale spécial conduite).
-  - 4 thèmes visuels commutables en direct (`Buenos Aires 1950`, `Milonga de Minuit`, `Café Tortoni Jour`, `Cockpit OLED`).
-- [x] **Verrouillage App Mobile Native & Didacticiel Rapide (`OnboardingModal.tsx`) :**
-  - Verrouillage strict du zoom/dézoom tactile hors carte interactive (`gesturestart`, `touch-action: pan-y`, police `16px` mobile anti-autozoom iOS).
-  - Correction de tous les débordements horizontaux sur écrans étroits (`LabSelectorBar.tsx` en grille 2 colonnes + `Navbar.tsx` compacte).
-  - Ajout du Didacticiel en 3 écrans rapides accessible dès l'ouverture ou via le bouton **`❓ Guide`**.
-  - Mise à jour complète de `MEMOIRE_PROJET.md`.
+- [x] Mise à jour du didacticiel (OnboardingModal.tsx) en 4 étapes intégrant la parité des rôles, la logistique nomade (vans/douches/parking), les filtres rapides et le guidage 1-clic.
+- [x] Compilation et validation TypeScript/Vite sans erreur.
+- [x] Déploiement instantané : https://racing-sienna-zndhsem.tmp.now
+- [x] Synchronisation GitHub Pages : https://krieknini-hue.github.io/tango-itineraire/
 
 ## Tâches en cours
-- [ ] Choix final du tunnel et du thème préférés suite aux tests sur mobile / autoradio.
+- [ ] Revue des retours utilisateurs sur le nouveau didacticiel.
+
+- [x] Bascule intégrale sur les données réelles scrapées (18 308 événements réels à venir) et suppression totale des fiches de démo mockEvents.ts
+- [x] Pipeline automatique build:events intégré aux scripts dev et build
+- [x] **Épuration par Tiroirs & Guichet Express par défaut :**
+  - Suppression du bandeau permanent Labo Test ➔ remplacé par un bouton discret **Roue Dentée (`⚙️`)** dans la barre du haut qui ouvre un tiroir latéral Labo Test.
+  - Allègement de la barre de navigation (`Navbar.tsx`) : seules 3 pastilles visibles (*❤️ Favoris*, *⚙️ Labo Test*, *☰ Menu*) et rangement de toutes les icônes secondaires (*Profil danseur, Didacticiel, Connexion/Cotisation, Urgences, Espace Assos*) dans un tiroir latéral.
+  - Ouverture par défaut sur le **Tunnel Guichet Express** (`tunnel_guichet`) avec choix direct *« 🚗 Je suis sur la route »* ou *« 📍 Autour d'une ville »* (connecté au radar local).
+  - Rangement des filtres (*Autoroute/Sans péage, Détour, Nuitée véhicule, Mode Découverte*) dans un tiroir repliable **`Options`** et allègement des cartes événements (`EventCard.tsx`) avec un tiroir **`Sol, Clim & DJ`**.

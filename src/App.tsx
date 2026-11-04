@@ -11,11 +11,15 @@ import { OutreachModal } from './components/OutreachModal';
 import { OfflineBanner } from './components/OfflineBanner';
 import { RouteSelector } from './components/RouteSelector';
 import { OnboardingModal } from './components/OnboardingModal';
+import { ProfileModal } from './components/ProfileModal';
+import { RouteFiltersBar } from './components/RouteFiltersBar';
+import { NearbyPanel, NearbyLaunchButton } from './components/NearbyRadar';
+import { profileManager, useProfileState } from './services/profileManager';
 import { LabSelectorBar, type UxMode, type DesignTheme } from './components/LabSelectorBar';
 import { TunnelGpsWizard } from './components/tunnels/TunnelGpsWizard';
 import { TunnelGuichetExpress } from './components/tunnels/TunnelGuichetExpress';
 import { TunnelCockpitCarplay } from './components/tunnels/TunnelCockpitCarplay';
-import { INITIAL_MOCK_EVENTS } from './data/mockEvents';
+import { loadEvents, eventsOnDate } from './services/eventsService';
 import type { TangoEvent, CityLocation, RouteResult } from './types/tango';
 import { resolveCity, getRoute, filterEventsAlongRoute } from './services/routingService';
 import { reportEmergencyCancellation } from './services/supabaseService';
@@ -25,21 +29,30 @@ import { Route, Sparkles, AlertCircle, Heart } from 'lucide-react';
 export function App() {
   const { favoriteIds } = useAuth();
 
-  // Sélecteurs de Test (Parcours Tunnel + Variante Design)
-  const [uxMode, setUxMode] = useState<UxMode>('tunnel_gps');
+  // Sélecteurs de Test (Parcours Tunnel + Variante Design) — Par défaut sur Tunnel Guichet Express
+  const [uxMode, setUxMode] = useState<UxMode>('tunnel_guichet');
   const [designTheme, setDesignTheme] = useState<DesignTheme>('1950');
   const [tunnelStep, setTunnelStep] = useState<1 | 2 | 3>(1);
+  const [isLabOpen, setIsLabOpen] = useState(false);
 
   const [startCity, setStartCity] = useState('Tours');
   const [endCity, setEndCity] = useState('Cannes');
-  const [date, setDate] = useState('2026-11-06');
+  const [date, setDate] = useState(() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+  });
   const [maxDetourKm, setMaxDetourKm] = useState(30);
   const [avoidTolls, setAvoidTolls] = useState(false);
   
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-  const [events, setEvents] = useState<TangoEvent[]>(INITIAL_MOCK_EVENTS);
+  const [events, setEvents] = useState<TangoEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [filteredEvents, setFilteredEvents] = useState<TangoEvent[]>([]);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [overnightOnly, setOvernightOnly] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [nearbyActive, setNearbyActive] = useState(false);
+  const { discoveryMode } = useProfileState();
   
   const [startLocation, setStartLocation] = useState<CityLocation | null>(null);
   const [endLocation, setEndLocation] = useState<CityLocation | null>(null);
@@ -106,9 +119,12 @@ export function App() {
       const targetRouteId = isAvoidTolls ? 'bis_toll_free' : 'primary';
       const route = await getRoute(startLoc, endLoc, { preferredRouteId: targetRouteId });
 
+      // Seuls les événements du jour choisi sont pertinents pour un trajet
+      const dayPool = eventsOnDate(currentEvents, date);
+
       // Calcule le nombre de milongas pour chaque option de route (directe vs bis)
       const routesWithCounts = route.routes.map((r) => {
-        const matched = filterEventsAlongRoute(currentEvents, r.coordinates, detour, startLoc);
+        const matched = filterEventsAlongRoute(dayPool, r.coordinates, detour, startLoc);
         return { ...r, eventsCount: matched.length };
       });
 
@@ -122,7 +138,7 @@ export function App() {
 
       // Filtrage des événements pour la route sélectionnée
       const activeOption = updatedRoute.routes.find((r) => r.id === targetRouteId) || updatedRoute.routes[0];
-      const matched = filterEventsAlongRoute(currentEvents, activeOption.coordinates, detour, startLoc);
+      const matched = filterEventsAlongRoute(dayPool, activeOption.coordinates, detour, startLoc);
       setFilteredEvents(matched);
 
     } catch (err) {
@@ -152,31 +168,54 @@ export function App() {
       activeRouteId: selected.id,
     });
 
-    const matched = filterEventsAlongRoute(events, selected.coordinates, maxDetourKm, startLocation);
+    const matched = filterEventsAlongRoute(dayEvents, selected.coordinates, maxDetourKm, startLocation);
     setFilteredEvents(matched);
   };
 
-  // Lancement automatique au premier chargement (Tours -> Cannes)
+  // Événements du jour de recherche (le trajet ne montre que cette date)
+  const dayEvents = useMemo(() => eventsOnDate(events, date), [events, date]);
+
+  // Chargement des événements réels puis première recherche (Tours -> Cannes)
   useEffect(() => {
-    performSearch();
+    let cancelled = false;
+    loadEvents()
+      .then((list) => {
+        if (cancelled) return;
+        setEvents(list);
+        setEventsLoading(false);
+        performSearch(startCity, endCity, maxDetourKm, list, avoidTolls);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setEventsLoading(false);
+        setErrorMessage('Impossible de charger les événements. Vérifiez votre connexion.');
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Recalcul rapide si le rayon de détour change
   useEffect(() => {
     if (routeResult && startLocation) {
       const activeCoords = routeResult.coordinates;
-      const matched = filterEventsAlongRoute(events, activeCoords, maxDetourKm, startLocation);
+      const matched = filterEventsAlongRoute(dayEvents, activeCoords, maxDetourKm, startLocation);
       setFilteredEvents(matched);
     }
-  }, [maxDetourKm, events, routeResult, startLocation]);
+  }, [maxDetourKm, dayEvents, routeResult, startLocation]);
 
   // Événements effectivement affichés (avec filtre favoris optionnel)
   const displayedEvents = useMemo(() => {
+    let list = filteredEvents;
     if (showOnlyFavorites) {
-      return filteredEvents.filter((evt) => favoriteIds.includes(evt.id));
+      list = list.filter((evt) => favoriteIds.includes(evt.id));
     }
-    return filteredEvents;
-  }, [filteredEvents, showOnlyFavorites, favoriteIds]);
+    if (overnightOnly) {
+      list = list.filter((evt) => evt.nomad_logistics?.overnight_parking === true);
+    }
+    return list;
+  }, [filteredEvents, showOnlyFavorites, favoriteIds, overnightOnly]);
 
   // Simulation d'une annulation d'urgence (canal WhatsApp Asso & BDD Supabase)
   const handleToggleCancellation = async (eventId: string) => {
@@ -225,20 +264,25 @@ export function App() {
     <div
       className={`theme-${designTheme} min-h-screen bg-[#120b0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2a1713]/70 via-[#150d0c] to-[#0d0706] text-[#f7f2e7] flex flex-col font-sans pb-12 selection:bg-[#d4af37] selection:text-[#120b0a]`}
     >
-      {/* Barre de sélection Mode Test (Menu déroulant Parcours Tunnel + Design) */}
+      {/* Tiroir Labo Test (ouvert via le bouton roue dentée ⚙️) */}
       <LabSelectorBar
+        isOpen={isLabOpen}
+        onClose={() => setIsLabOpen(false)}
         uxMode={uxMode}
         setUxMode={handleUxModeChange}
         designTheme={designTheme}
         setDesignTheme={setDesignTheme}
-        onResetTunnel={() => setTunnelStep(1)}
+        onResetTunnel={() => {
+          setNearbyActive(false);
+          setTunnelStep(1);
+        }}
         onOpenGuide={() => setIsGuideOpen(true)}
       />
 
       {/* Bandeau d'état réseau hors-ligne nomade */}
       <OfflineBanner />
 
-      {/* Barre de navigation façon grand salon */}
+      {/* Barre de navigation allégée avec tiroir menu & bouton roue dentée */}
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -248,6 +292,12 @@ export function App() {
         onOpenMembership={() => setIsMembershipModalOpen(true)}
         onOpenOutreach={() => setIsOutreachModalOpen(true)}
         onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
+        onOpenLab={() => setIsLabOpen(true)}
+        onResetHome={() => {
+          setNearbyActive(false);
+          setTunnelStep(1);
+        }}
         showOnlyFavorites={showOnlyFavorites}
         setShowOnlyFavorites={setShowOnlyFavorites}
         favoritesCount={favoriteIds.length}
@@ -256,6 +306,37 @@ export function App() {
 
       {/* Conteneur principal */}
       <main className="max-w-6xl w-full mx-auto px-3 sm:px-4 pt-4 sm:pt-6 space-y-4">
+        {/* Indicateur de chargement initial des données réelles */}
+        {eventsLoading && (
+          <div className="bg-[#1b1210] border border-[#d4af37]/40 rounded-xl p-3 text-xs text-[#fce59e] flex items-center justify-center gap-2 shadow-lg">
+            <Sparkles className="w-4 h-4 text-[#d4af37] animate-spin" />
+            <span>Chargement des milongas et festivals réels en France...</span>
+          </div>
+        )}
+
+        {/* Radar local (« Autour d'une ville / de moi ») */}
+        {nearbyActive && (
+          <NearbyPanel
+            events={events}
+            selectedEvent={currentSelected}
+            onSelectEvent={(evt) => setSelectedEvent(evt)}
+            onClose={() => setNearbyActive(false)}
+          />
+        )}
+
+        {/* En mode hors Guichet Express uniquement : raccourci Radar & Filtres à l'étape des résultats */}
+        {!nearbyActive && uxMode === 'classic' && (
+          <div className="space-y-3">
+            <NearbyLaunchButton onClick={() => setNearbyActive(true)} />
+            <RouteFiltersBar
+              overnightOnly={overnightOnly}
+              setOvernightOnly={setOvernightOnly}
+              discoveryMode={discoveryMode}
+              setDiscoveryMode={profileManager.setDiscoveryMode}
+            />
+          </div>
+        )}
+
         {/* Message d'erreur éventuel */}
         {errorMessage && (
           <div className="bg-[#3a0d14] border border-rose-500 text-rose-200 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-lg">
@@ -265,7 +346,7 @@ export function App() {
         )}
 
         {/* VERSION 1 : TUNNEL GPS 3 ÉTAPES (Mobile & Route) */}
-        {uxMode === 'tunnel_gps' && (
+        {!nearbyActive && uxMode === 'tunnel_gps' && (
           <TunnelGpsWizard
             step={tunnelStep}
             setStep={setTunnelStep}
@@ -295,8 +376,8 @@ export function App() {
           />
         )}
 
-        {/* VERSION 2 : TUNNEL GUICHET EXPRESS (2 questions puis Résultat) */}
-        {uxMode === 'tunnel_guichet' && (
+        {/* VERSION 2 : TUNNEL GUICHET EXPRESS (Par défaut — 2 questions puis Résultat avec tiroir d'options) */}
+        {!nearbyActive && uxMode === 'tunnel_guichet' && (
           <TunnelGuichetExpress
             step={tunnelStep}
             setStep={setTunnelStep}
@@ -304,6 +385,8 @@ export function App() {
             setStartCity={setStartCity}
             endCity={endCity}
             setEndCity={setEndCity}
+            date={date}
+            setDate={setDate}
             maxDetourKm={maxDetourKm}
             setMaxDetourKm={setMaxDetourKm}
             avoidTolls={avoidTolls}
@@ -311,6 +394,11 @@ export function App() {
               setAvoidTolls(avoid);
               if (routeResult) handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
             }}
+            overnightOnly={overnightOnly}
+            setOvernightOnly={setOvernightOnly}
+            discoveryMode={discoveryMode}
+            setDiscoveryMode={profileManager.setDiscoveryMode}
+            onOpenNearby={() => setNearbyActive(true)}
             onSearch={(s, e, d, avoid) => performSearch(s, e, d, events, avoid)}
             isLoading={isLoading}
             routeResult={routeResult}
@@ -325,7 +413,7 @@ export function App() {
         )}
 
         {/* VERSION 3 : MODE COCKPIT AUTORADIO / CARPLAY (Spécial Conduite) */}
-        {uxMode === 'tunnel_cockpit' && (
+        {!nearbyActive && uxMode === 'tunnel_cockpit' && (
           <TunnelCockpitCarplay
             step={tunnelStep}
             setStep={setTunnelStep}
@@ -353,7 +441,7 @@ export function App() {
         )}
 
         {/* VERSION 4 : VUE COMPLÈTE CLASSIQUE (Originale) */}
-        {uxMode === 'classic' && (
+        {!nearbyActive && uxMode === 'classic' && (
           <>
             <ItineraryForm
               startCity={startCity}
@@ -535,7 +623,13 @@ export function App() {
         onClose={() => setIsOutreachModalOpen(false)}
       />
 
-      {/* Modal Didacticiel Rapide (3 slides) */}
+      {/* Modal Fiche Tanguero (bottom sheet mobile) */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      {/* Modal Didacticiel Rapide (4 étapes) */}
       <OnboardingModal
         isOpen={isGuideOpen}
         onClose={handleCloseGuide}

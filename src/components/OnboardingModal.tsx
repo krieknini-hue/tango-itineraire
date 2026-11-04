@@ -7,6 +7,7 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
+  Users,
 } from 'lucide-react';
 import { FileteadoCorner } from './FileteadoOrnaments';
 
@@ -16,45 +17,57 @@ interface OnboardingModalProps {
 }
 
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
-  const [slide, setSlide] = useState<0 | 1 | 2>(0);
+  const [slide, setSlide] = useState<0 | 1 | 2 | 3>(0);
 
   if (!isOpen) return null;
 
   const slides = [
     {
-      badge: 'Étape 1 / 3 • Le Concept',
+      badge: 'Étape 1 / 4 • Le Concept & Trajet',
       icon: <Route className="w-8 h-8 text-[#f5d77f]" />,
       title: 'Trouve les milongas sur ta route',
       description:
-        "Plus besoin de chercher ville par ville : indique ton départ et ta destination, l'application scanne tout ton trajet routier.",
+        "Plus besoin de chercher ville par ville : indique ton départ et ta destination, l'application scanne l'intégralité de ton trajet routier.",
       points: [
-        'Choix entre trajet Rapide (Autoroute) ou Flâneur (0 € péage).',
-        'Rayon de détour réglable (de 15 km à 60 km autour de ta route).',
-        'Fonctionne aussi autour d’une seule ville pour le soir même.',
+        'Trajet Rapide (Autoroute) ou Flâneur (0 € de péage).',
+        'Rayon de détour réglable (de 15 km à 60 km max du tracé).',
+        'Filtres rapides 1-clic : Ce soir, Climatisé ❄️, Parquet amorti, Entrée libre.',
       ],
     },
     {
-      badge: 'Étape 2 / 3 • Pensé pour les Danseurs',
+      badge: 'Étape 2 / 4 • Fiche Salon & Sol',
       icon: <Sparkles className="w-8 h-8 text-[#f5d77f]" />,
-      title: 'Toutes les infos avant de t’arrêter',
+      title: 'Toutes les infos essentielles avant l’arrêt',
       description:
-        'Chaque salon est présenté comme un billet de milonga avec uniquement ce qui compte vraiment pour danser :',
+        'Chaque étape est présentée avec les critères indispensables au confort des danseurs :',
       points: [
-        'Qualité du sol (parquet amorti, bois, carrelage) & climatisation ❄️.',
-        'Horaires précis, tarif, DJ / musicalisateur et parking bagages.',
-        'Bouton ❤️ Favoris : garde tes salons en mémoire même sans réseau 4G.',
+        'Qualité certifiée du sol : parquet amorti, bois franc, béton ciré ou plein air.',
+        'Climatisation estivale vérifiée, tarifs d’entrée et horaires précis.',
+        'DJ invité, style musical (Âge d’Or, vinyles, néo) et orchestres en live.',
       ],
     },
     {
-      badge: 'Étape 3 / 3 • En Voiture & Zéro Faux Plan',
-      icon: <Navigation className="w-8 h-8 text-[#f5d77f] rotate-45" />,
-      title: 'Guidage 1-clic & Alertes en direct',
+      badge: 'Étape 3 / 4 • Logistique Nomade & Parité',
+      icon: <Users className="w-8 h-8 text-[#f5d77f]" />,
+      title: 'Parité des rôles & Confort Nomade',
       description:
-        'Utilisable d’une seule main sur téléphone ou sur l’écran de ton autoradio :',
+        'Des outils pensés pour les voyageurs, les vanlifers et les danseurs exigeants :',
       points: [
-        'Boutons directs vers Waze et Google Maps sans ressaisir l’adresse.',
-        'Ligne Zéro Faux Plan : si une milonga est annulée à la dernière minute, elle passe en 🔴 ANNULÉ.',
-        'En haut de l’écran, utilise les menus déroulants pour tester les 3 tunnels et les 4 ambiances !',
+        '⚖️ Jauge de Parité : estimation de l’équilibre Guides / Suiveurs / Double rôle.',
+        '🚐 Logistique Nomade : parking camping-car / van, vestiaire et douches pour se rafraîchir.',
+        '👥 Communauté : signale ta présence ("J’y serai !") pour animer la milonga.',
+      ],
+    },
+    {
+      badge: 'Étape 4 / 4 • Guidage & Zéro Faux Plan',
+      icon: <Navigation className="w-8 h-8 text-[#f5d77f] rotate-45" />,
+      title: 'Guidage 1-clic & Sécurité en route',
+      description:
+        'Une expérience fluide utilisable d’une seule main sur smartphone ou écran de bord :',
+      points: [
+        'Boutons directs Waze, Google Maps et Apple Maps sans ressaisir l’adresse.',
+        'Ligne d’Urgence WhatsApp : passage immédiat en 🔴 ANNULÉ si imprévu de salle.',
+        'Mode Hors-Ligne & Favoris ❤️ : fiches sauvegardées même sans réseau 4G.',
       ],
     },
   ];
@@ -109,11 +122,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
 
         {/* Indicateurs de pages (dots) */}
         <div className="flex items-center justify-center gap-2 my-3">
-          {[0, 1, 2].map((idx) => (
+          {[0, 1, 2, 3].map((idx) => (
             <button
               key={idx}
               type="button"
-              onClick={() => setSlide(idx as 0 | 1 | 2)}
+              onClick={() => setSlide(idx as 0 | 1 | 2 | 3)}
               className={`h-2 rounded-full transition-all cursor-pointer ${
                 slide === idx ? 'w-7 bg-[#d4af37]' : 'w-2 bg-[#d4af37]/30'
               }`}
@@ -127,7 +140,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           {slide > 0 ? (
             <button
               type="button"
-              onClick={() => setSlide((s) => (s - 1) as 0 | 1 | 2)}
+              onClick={() => setSlide((s) => (s - 1) as 0 | 1 | 2 | 3)}
               className="py-3 px-4 rounded-xl bg-[#120b0a] border border-[#d4af37]/40 text-xs font-bold text-amber-200 flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -143,10 +156,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             </button>
           )}
 
-          {slide < 2 ? (
+          {slide < 3 ? (
             <button
               type="button"
-              onClick={() => setSlide((s) => (s + 1) as 0 | 1 | 2)}
+              onClick={() => setSlide((s) => (s + 1) as 0 | 1 | 2 | 3)}
               className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#8e1c2e] to-[#6d1320] text-[#fce59e] border border-[#d4af37] font-display font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-lg cursor-pointer"
             >
               <span>Suivant</span>

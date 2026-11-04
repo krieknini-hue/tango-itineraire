@@ -39,3 +39,20 @@
 - **Stabilité des liens de test à distance :**
   - *Problème :* Les tunnels locaux se ferment si le PC passe en veille.
   - *Solution :* Déploiement cloud mondial (Vercel + GitHub Pages) indépendant du PC.
+
+## Profil/Nomad/Parit�
+- Stack r�elle React+TS (pas Vanilla JS) : modules en .ts/.tsx. Store profil via useSyncExternalStore (z�ro Context). Donn�es nomad/affluence en enrichissement optionnel de mockEvents (fiche sans donn�es = blocs masqu�s). Filtre nuit�e exclut les fiches non renseign�es.
+
+## Reverse Ping
+- Num�ro de gestion via VITE_ACTIVATION_PHONE (placeholder +33600000000). Session locale valid�e d�s le clic (pas de v�rif serveur, demand� tel quel). T�l�phone normalis� E.164 (0612... -> +33612...).
+
+## Sprint Communautaire
+- Logique métier dans src/modules/*.ts (pur TS, testable), UI dans components/. Stack React+TS conservée (pas de JS vanilla).
+- Radar : fenêtre = événement non terminé ET (aujourd'hui OU début < +12h). Repli 'prochaines dates' si vide.
+- Covoit : interface CarpoolRepository (localStorage en démo) pour brancher du temps réel.
+- Adhésion : paiement externe (VITE_MEMBERSHIP_PAY_URL), statut Actif déclaratif local.
+- Organisateur : token validé côté client (démo) -> à sécuriser côté serveur en prod.
+
+## Suppression des fiches de démo & intégration du jeu réel (18k+ événements)
+- **Problème :** L'application utilisait 10 fiches statiques (mockEvents.ts) toutes calées au 2026-11-06.
+- **Solution :** Suppression de mockEvents.ts. Création d'un script d'assemblage (scripts/buildEventsDataset.mjs) qui fusionne et nettoie scraped_milongas.json + scraped_venues.json en générant public/data/events.json. Chargement asynchrone non-bloquant via eventsService.ts pour ne pas alourdir le bundle JS principal.

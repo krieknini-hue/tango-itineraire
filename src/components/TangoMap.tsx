@@ -12,6 +12,9 @@ interface TangoMapProps {
   routes?: RouteOption[];
   activeRouteId?: string;
   onSelectRouteId?: (id: string) => void;
+  /** Mode « autour de moi » : position + cercle de rayon (km) */
+  userPosition?: { lat: number; lng: number } | null;
+  radiusKm?: number;
 }
 
 export const TangoMap: React.FC<TangoMapProps> = ({
@@ -24,6 +27,8 @@ export const TangoMap: React.FC<TangoMapProps> = ({
   routes = [],
   activeRouteId = 'primary',
   onSelectRouteId,
+  userPosition = null,
+  radiusKm,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -168,6 +173,33 @@ export const TangoMap: React.FC<TangoMapProps> = ({
       bounds.extend([endLocation.lat, endLocation.lng]);
     }
 
+    // Mode « autour de moi » : point bleu pulsant + cercle de rayon
+    let userCircleBounds: L.LatLngBounds | null = null;
+    if (userPosition) {
+      const center: [number, number] = [userPosition.lat, userPosition.lng];
+      const meIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,0.3),0 2px 8px rgba(0,0,0,0.6);"></div>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      });
+      markersLayer?.addLayer(L.marker(center, { icon: meIcon, zIndexOffset: 1000 }).bindPopup('Vous êtes ici'));
+      if (radiusKm) {
+        const circle = L.circle(center, {
+          radius: radiusKm * 1000,
+          color: '#d4af37',
+          weight: 2,
+          dashArray: '6, 6',
+          fillColor: '#d4af37',
+          fillOpacity: 0.08,
+          interactive: false,
+        });
+        markersLayer?.addLayer(circle);
+        userCircleBounds = circle.getBounds();
+      }
+      bounds.extend(center);
+    }
+
     // Marqueurs Événements Tango (Milongas, Pratiques, etc.)
     events.forEach((evt) => {
       const isSelected = selectedEvent?.id === evt.id;
@@ -229,10 +261,13 @@ export const TangoMap: React.FC<TangoMapProps> = ({
       bounds.extend([evt.lat, evt.lng]);
     });
 
-    if (bounds.isValid()) {
+    if (userCircleBounds) {
+      // Centrage sur la position : le cercle de rayon est toujours entièrement visible
+      map.fitBounds(userCircleBounds, { padding: [20, 20] });
+    } else if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [45, 45], maxZoom: 14 });
     }
-  }, [routes, activeRouteId, routeCoords, startLocation, endLocation, events, selectedEvent, onSelectEvent, onSelectRouteId]);
+  }, [routes, activeRouteId, routeCoords, startLocation, endLocation, events, selectedEvent, onSelectEvent, onSelectRouteId, userPosition, radiusKm]);
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-[#d4af37]/60 shadow-2xl shadow-black">
