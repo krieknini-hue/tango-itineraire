@@ -1,9 +1,9 @@
-const CACHE_NAME = 'tango-itineraire-v1';
+const CACHE_NAME = 'tango-itineraire-v2';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/favicon.svg',
-  '/manifest.webmanifest'
+  './',
+  './index.html',
+  './favicon.svg',
+  './manifest.webmanifest'
 ];
 
 // Installation : mise en cache du shell de l'application
@@ -57,18 +57,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first avec fallback réseau pour les assets de l'application
+  // Network-first avec fallback cache pour toujours avoir la dernière version en ligne
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        // Fallback page d'accueil si navigation HTML hors-ligne
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
-      });
-    })
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });
