@@ -143,12 +143,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         {/* Corps des 4 Blocs d'informations */}
         <div className="p-5 sm:p-6 space-y-5 max-h-[62vh] overflow-y-auto">
           
-          {/* BLOC 1 : L'ESSENTIEL & ENTRADA */}
+          {/* L'ESSENTIEL & ENTRADA */}
           <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner">
             <div className="flex items-center justify-between mb-3 border-b border-[#d4af37]/20 pb-2">
               <h3 className="text-xs font-bold font-display uppercase tracking-wide text-[#f5d77f] flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-[#d4af37]" />
-                Bloc 1 • L'Essentiel & Entrée
+                L'Essentiel & Entrée
               </h3>
               <span className="text-[10px] text-amber-200/60 uppercase tracking-wider font-semibold">Registre Milonguero</span>
             </div>
@@ -176,12 +176,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             </div>
           </section>
 
-          {/* BLOC 2 : CONFORT & SOL DU DANSEUR (PISTA DE BAILE) */}
+          {/* CONFORT & SOL DU DANSEUR (PISTA DE BAILE) */}
           <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner">
             <div className="flex items-center justify-between mb-3 border-b border-[#d4af37]/20 pb-2">
               <h3 className="text-xs font-bold font-display uppercase tracking-wide text-[#f5d77f] flex items-center gap-1.5">
                 <Layers className="w-4 h-4 text-[#d4af37]" />
-                Bloc 2 • Confort de la Piste & Sol
+                Confort de la Piste & Sol
               </h3>
               <span className="text-[10px] text-amber-200/60 uppercase tracking-wider font-semibold">Critère Danseur</span>
             </div>
@@ -220,12 +220,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             </div>
           </section>
 
-          {/* BLOC 3 : AMBIANCE & MUSICALITÉ (ORQUESTA & DJ) */}
+          {/* AMBIANCE & MUSICALITÉ (ORQUESTA & DJ) */}
           <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner">
             <div className="flex items-center justify-between mb-3 border-b border-[#d4af37]/20 pb-2">
               <h3 className="text-xs font-bold font-display uppercase tracking-wider text-[#f5d77f] flex items-center gap-1.5">
                 <Disc3 className="w-4 h-4 text-[#d4af37]" />
-                Bloc 3 • Ambiance & Musicalité
+                Ambiance & Musicalité
               </h3>
               <span className="text-[10px] text-amber-200/50 uppercase tracking-widest">Época de Oro</span>
             </div>
@@ -283,13 +283,13 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
           {/* COVOIT' MILONGA : annonces directes WhatsApp / SMS */}
           <CarpoolBlock event={event} />
 
-          {/* BLOC 4 : EXPOSANTS & SHOPPING (CHAUSSURES DE TANGO) */}
+          {/* EXPOSANTS & SHOPPING (CHAUSSURES DE TANGO) */}
           {event.exhibitors && event.exhibitors.length > 0 && (
             <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner">
               <div className="flex items-center justify-between mb-2.5 border-b border-[#d4af37]/20 pb-2">
                 <h3 className="text-xs font-bold font-display uppercase tracking-wide text-[#f5d77f] flex items-center gap-1.5">
                   <ShoppingBag className="w-4 h-4 text-[#d4af37]" />
-                  Bloc 4 • Souliers & Vêtements de Tango
+                  Souliers & Vêtements de Tango
                 </h3>
                 <span className="text-[10px] text-amber-200/50 uppercase tracking-widest">Boutiques</span>
               </div>

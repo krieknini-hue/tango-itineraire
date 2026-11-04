@@ -19,3 +19,4 @@ Le projet intègre les nouvelles fonctionnalités (Jauge de parité, Logistique 
   - Allègement de la barre de navigation (`Navbar.tsx`) : seules 3 pastilles visibles (*❤️ Favoris*, *⚙️ Labo Test*, *☰ Menu*) et rangement de toutes les icônes secondaires (*Profil danseur, Didacticiel, Connexion/Cotisation, Urgences, Espace Assos*) dans un tiroir latéral.
   - Ouverture par défaut sur le **Tunnel Guichet Express** (`tunnel_guichet`) avec choix direct *« 🚗 Je suis sur la route »* ou *« 📍 Autour d'une ville »* (connecté au radar local).
   - Rangement des filtres (*Autoroute/Sans péage, Détour, Nuitée véhicule, Mode Découverte*) dans un tiroir repliable **`Options`** et allègement des cartes événements (`EventCard.tsx`) avec un tiroir **`Sol, Clim & DJ`**.
+- [x] Suppression des mentions « Bloc 1 / 2 / 3 / 4 » dans `EventDetailModal.tsx` (conservation des titres purs) et déploiement systématique sur GitHub (`main` + `gh-pages`).
