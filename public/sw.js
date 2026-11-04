@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tango-itineraire-v2';
+const CACHE_NAME = 'tango-itineraire-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',

@@ -14,6 +14,11 @@ Le projet est désormais versionné sous Git, hébergé sur GitHub et déployé 
   - `TunnelGuichetExpress.tsx` : Tunnel Guichet Express en 2 clics (« Sur ma route » vs « Autour d'une ville ») + barre repliée.
   - `TunnelCockpitCarplay.tsx` : Mode Cockpit Autoradio / CarPlay (boutons XXL, navigation escale par escale spécial conduite).
   - 4 thèmes visuels commutables en direct (`Buenos Aires 1950`, `Milonga de Minuit`, `Café Tortoni Jour`, `Cockpit OLED`).
+- [x] **Verrouillage App Mobile Native & Didacticiel Rapide (`OnboardingModal.tsx`) :**
+  - Verrouillage strict du zoom/dézoom tactile hors carte interactive (`gesturestart`, `touch-action: pan-y`, police `16px` mobile anti-autozoom iOS).
+  - Correction de tous les débordements horizontaux sur écrans étroits (`LabSelectorBar.tsx` en grille 2 colonnes + `Navbar.tsx` compacte).
+  - Ajout du Didacticiel en 3 écrans rapides accessible dès l'ouverture ou via le bouton **`❓ Guide`**.
+  - Mise à jour complète de `MEMOIRE_PROJET.md`.
 
 ## Tâches en cours
 - [ ] Choix final du tunnel et du thème préférés suite aux tests sur mobile / autoradio.

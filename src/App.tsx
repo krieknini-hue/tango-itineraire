@@ -10,6 +10,7 @@ import { MembershipModal } from './components/MembershipModal';
 import { OutreachModal } from './components/OutreachModal';
 import { OfflineBanner } from './components/OfflineBanner';
 import { RouteSelector } from './components/RouteSelector';
+import { OnboardingModal } from './components/OnboardingModal';
 import { LabSelectorBar, type UxMode, type DesignTheme } from './components/LabSelectorBar';
 import { TunnelGpsWizard } from './components/tunnels/TunnelGpsWizard';
 import { TunnelGuichetExpress } from './components/tunnels/TunnelGuichetExpress';
@@ -51,7 +52,23 @@ export function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMembershipModalOpen, setIsMembershipModalOpen] = useState(false);
   const [isOutreachModalOpen, setIsOutreachModalOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('tango_guide_seen_v1');
+    } catch {
+      return false;
+    }
+  });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleCloseGuide = () => {
+    setIsGuideOpen(false);
+    try {
+      localStorage.setItem('tango_guide_seen_v1', '1');
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   // Recherche d'itinéraire et calcul du corridor avec propositions bis
   const performSearch = async (
@@ -215,6 +232,7 @@ export function App() {
         designTheme={designTheme}
         setDesignTheme={setDesignTheme}
         onResetTunnel={() => setTunnelStep(1)}
+        onOpenGuide={() => setIsGuideOpen(true)}
       />
 
       {/* Bandeau d'état réseau hors-ligne nomade */}
@@ -229,9 +247,11 @@ export function App() {
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onOpenMembership={() => setIsMembershipModalOpen(true)}
         onOpenOutreach={() => setIsOutreachModalOpen(true)}
+        onOpenGuide={() => setIsGuideOpen(true)}
         showOnlyFavorites={showOnlyFavorites}
         setShowOnlyFavorites={setShowOnlyFavorites}
         favoritesCount={favoriteIds.length}
+        showViewToggle={uxMode === 'classic'}
       />
 
       {/* Conteneur principal */}
@@ -513,6 +533,12 @@ export function App() {
       <OutreachModal
         isOpen={isOutreachModalOpen}
         onClose={() => setIsOutreachModalOpen(false)}
+      />
+
+      {/* Modal Didacticiel Rapide (3 slides) */}
+      <OnboardingModal
+        isOpen={isGuideOpen}
+        onClose={handleCloseGuide}
       />
     </div>
   );

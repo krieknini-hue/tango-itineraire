@@ -22,6 +22,10 @@
    - *Pourquoi :* Éviter la surcharge cognitive à l'ouverture sur petit écran mobile ou écran d'autoradio.
    - *Solution :* Implémentation des 3 tunnels (`TunnelGpsWizard`, `TunnelGuichetExpress`, `TunnelCockpitCarplay`) + la vue classique, ainsi que 4 variantes de design (`1950`, `midnight`, `tortoni`, `cockpit_oled`) accessibles via deux menus déroulants en haut de page.
 
+9. **Comportement App Mobile Native (Zéro Zoom / Zéro Hors-Écran) & Didacticiel :**
+   - *Problème :* Sur petits écrans mobiles, la barre de navigation et les longs intitulés des menus déroulants débordaient horizontalement et iOS Safari zoomait automatiquement sur les champs `<select>` / `<input>` de moins de 16px.
+   - *Solution :* Passage des champs mobiles à `16px`, blocage du pinch-zoom hors carte Leaflet (`gesturestart` + `touch-action: pan-y`), grille 2 colonnes sans débordement pour `LabSelectorBar.tsx`, et création du didacticiel 3 étapes `OnboardingModal.tsx`.
+
 ## Bugs / Défis Résolus
 - **Extraction des données du lien partagé Gemini :**
   - *Problème :* Le lien nécessitait un rendu dynamique côté client.
