@@ -10,6 +10,10 @@ import { MembershipModal } from './components/MembershipModal';
 import { OutreachModal } from './components/OutreachModal';
 import { OfflineBanner } from './components/OfflineBanner';
 import { RouteSelector } from './components/RouteSelector';
+import { LabSelectorBar, type UxMode, type DesignTheme } from './components/LabSelectorBar';
+import { TunnelGpsWizard } from './components/tunnels/TunnelGpsWizard';
+import { TunnelGuichetExpress } from './components/tunnels/TunnelGuichetExpress';
+import { TunnelCockpitCarplay } from './components/tunnels/TunnelCockpitCarplay';
 import { INITIAL_MOCK_EVENTS } from './data/mockEvents';
 import type { TangoEvent, CityLocation, RouteResult } from './types/tango';
 import { resolveCity, getRoute, filterEventsAlongRoute } from './services/routingService';
@@ -19,6 +23,11 @@ import { Route, Sparkles, AlertCircle, Heart } from 'lucide-react';
 
 export function App() {
   const { favoriteIds } = useAuth();
+
+  // Sélecteurs de Test (Parcours Tunnel + Variante Design)
+  const [uxMode, setUxMode] = useState<UxMode>('tunnel_gps');
+  const [designTheme, setDesignTheme] = useState<DesignTheme>('1950');
+  const [tunnelStep, setTunnelStep] = useState<1 | 2 | 3>(1);
 
   const [startCity, setStartCity] = useState('Tours');
   const [endCity, setEndCity] = useState('Cannes');
@@ -160,7 +169,6 @@ export function App() {
       ? "Alerte reçue par l'organisateur à 18h30 : Salle inondée suite orage, événement reporté."
       : undefined;
 
-    // Mise à jour BDD Supabase si connecté
     if (nextStatus === 'cancelled') {
       await reportEmergencyCancellation(eventId, reason || '');
     }
@@ -188,8 +196,27 @@ export function App() {
     return events.find((e) => e.id === selectedEvent.id) || selectedEvent;
   }, [selectedEvent, events]);
 
+  const handleUxModeChange = (mode: UxMode) => {
+    setUxMode(mode);
+    setTunnelStep(1);
+    if (mode === 'tunnel_cockpit' && designTheme === '1950') {
+      // On garde le thème actif mais l'utilisateur peut tester Cockpit OLED s'il veut
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#120b0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2a1713]/70 via-[#150d0c] to-[#0d0706] text-[#f7f2e7] flex flex-col font-sans pb-12 selection:bg-[#d4af37] selection:text-[#120b0a]">
+    <div
+      className={`theme-${designTheme} min-h-screen bg-[#120b0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2a1713]/70 via-[#150d0c] to-[#0d0706] text-[#f7f2e7] flex flex-col font-sans pb-12 selection:bg-[#d4af37] selection:text-[#120b0a]`}
+    >
+      {/* Barre de sélection Mode Test (Menu déroulant Parcours Tunnel + Design) */}
+      <LabSelectorBar
+        uxMode={uxMode}
+        setUxMode={handleUxModeChange}
+        designTheme={designTheme}
+        setDesignTheme={setDesignTheme}
+        onResetTunnel={() => setTunnelStep(1)}
+      />
+
       {/* Bandeau d'état réseau hors-ligne nomade */}
       <OfflineBanner />
 
@@ -209,28 +236,6 @@ export function App() {
 
       {/* Conteneur principal */}
       <main className="max-w-6xl w-full mx-auto px-3 sm:px-4 pt-4 sm:pt-6 space-y-4">
-        
-        {/* Formulaire de recherche d'itinéraire (Guichet Milonguero) */}
-        <ItineraryForm
-          startCity={startCity}
-          setStartCity={setStartCity}
-          endCity={endCity}
-          setEndCity={setEndCity}
-          date={date}
-          setDate={setDate}
-          maxDetourKm={maxDetourKm}
-          setMaxDetourKm={setMaxDetourKm}
-          avoidTolls={avoidTolls}
-          setAvoidTolls={(avoid) => {
-            setAvoidTolls(avoid);
-            if (routeResult) {
-              handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
-            }
-          }}
-          onSearch={() => performSearch(startCity, endCity, maxDetourKm, events, avoidTolls)}
-          isLoading={isLoading}
-        />
-
         {/* Message d'erreur éventuel */}
         {errorMessage && (
           <div className="bg-[#3a0d14] border border-rose-500 text-rose-200 px-4 py-3 rounded-xl text-sm flex items-center gap-2 shadow-lg">
@@ -239,137 +244,242 @@ export function App() {
           </div>
         )}
 
-        {/* Sélecteur de Propositions d'Itinéraires (Direct Autoroute vs Bis Sans Péage) */}
-        {routeResult && routeResult.routes && routeResult.routes.length > 1 && (
-          <RouteSelector
-            routes={routeResult.routes}
+        {/* VERSION 1 : TUNNEL GPS 3 ÉTAPES (Mobile & Route) */}
+        {uxMode === 'tunnel_gps' && (
+          <TunnelGpsWizard
+            step={tunnelStep}
+            setStep={setTunnelStep}
+            startCity={startCity}
+            setStartCity={setStartCity}
+            endCity={endCity}
+            setEndCity={setEndCity}
+            date={date}
+            setDate={setDate}
+            maxDetourKm={maxDetourKm}
+            setMaxDetourKm={setMaxDetourKm}
+            avoidTolls={avoidTolls}
+            setAvoidTolls={(avoid) => {
+              setAvoidTolls(avoid);
+              if (routeResult) handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
+            }}
+            onSearch={(s, e, d, avoid) => performSearch(s, e, d, events, avoid)}
+            isLoading={isLoading}
+            routeResult={routeResult}
             activeRouteId={activeRouteId}
             onSelectRoute={handleSelectRoute}
+            startLocation={startLocation}
+            endLocation={endLocation}
+            events={displayedEvents}
+            selectedEvent={currentSelected}
+            onSelectEvent={(evt) => setSelectedEvent(evt)}
           />
         )}
 
-        {/* Résumé du trajet calculé façon feuille de route 1950 */}
-        {routeResult && startLocation && endLocation && (
-          <div className="bg-[#1b1210] rounded-xl p-3.5 border border-[#d4af37]/40 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-[#f5d77f] flex items-center gap-1.5 text-sm sm:text-base tracking-wide">
-                <Route className="w-4 h-4 text-[#d4af37]" />
-                {startLocation.name} ➔ {endLocation.name}
-              </span>
-              <span className="text-[#d4af37]/40">•</span>
-              <span className="text-amber-100 font-semibold font-mono">
-                {routeResult.totalDistanceKm} km
-              </span>
-              <span className="text-[#d4af37]/40">•</span>
-              <span className="text-amber-200/80 font-medium">
-                ~{Math.floor(routeResult.totalDurationMinutes / 60)}h{routeResult.totalDurationMinutes % 60 ? (routeResult.totalDurationMinutes % 60).toString().padStart(2, '0') : ''} de route
-              </span>
-              <span className="text-[#d4af37]/40">•</span>
-              <span className={`font-mono text-xs font-semibold px-2 py-0.5 rounded ${
-                routeResult.isTollFree
-                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/40'
-                  : 'bg-amber-950/80 text-amber-300 border border-amber-600/40'
-              }`}>
-                {routeResult.isTollFree ? '0 € péage' : `~${routeResult.estimatedTollEur} € péage`}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 font-medium">
-              <span className="text-[#fce59e] font-bold bg-[#8e1c2e] px-2.5 py-1 rounded-lg border border-[#d4af37]/50 shadow-sm">
-                {displayedEvents.length} {showOnlyFavorites ? 'favori' : 'salon'}{displayedEvents.length > 1 ? 's' : ''} sur la route
-              </span>
-              <span className="text-amber-200/50 text-xs hidden md:inline font-mono">
-                (détour max : {maxDetourKm} km)
-              </span>
-            </div>
-          </div>
+        {/* VERSION 2 : TUNNEL GUICHET EXPRESS (2 questions puis Résultat) */}
+        {uxMode === 'tunnel_guichet' && (
+          <TunnelGuichetExpress
+            step={tunnelStep}
+            setStep={setTunnelStep}
+            startCity={startCity}
+            setStartCity={setStartCity}
+            endCity={endCity}
+            setEndCity={setEndCity}
+            maxDetourKm={maxDetourKm}
+            setMaxDetourKm={setMaxDetourKm}
+            avoidTolls={avoidTolls}
+            setAvoidTolls={(avoid) => {
+              setAvoidTolls(avoid);
+              if (routeResult) handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
+            }}
+            onSearch={(s, e, d, avoid) => performSearch(s, e, d, events, avoid)}
+            isLoading={isLoading}
+            routeResult={routeResult}
+            activeRouteId={activeRouteId}
+            onSelectRoute={handleSelectRoute}
+            startLocation={startLocation}
+            endLocation={endLocation}
+            events={displayedEvents}
+            selectedEvent={currentSelected}
+            onSelectEvent={(evt) => setSelectedEvent(evt)}
+          />
         )}
 
-        {/* Contenu principal : Vue Carte ou Vue Liste */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-          
-          {/* Section Carte (Interactive avec 2 tracés visibles) */}
-          <div className={`lg:col-span-7 h-[480px] lg:h-[580px] ${viewMode === 'list' ? 'hidden lg:block' : 'block'}`}>
-            <TangoMap
-              startLocation={startLocation}
-              endLocation={endLocation}
-              routeCoords={routeResult?.coordinates || []}
-              routes={routeResult?.routes || []}
-              activeRouteId={activeRouteId}
-              onSelectRouteId={handleSelectRoute}
-              events={displayedEvents}
-              selectedEvent={currentSelected}
-              onSelectEvent={(evt) => setSelectedEvent(evt)}
+        {/* VERSION 3 : MODE COCKPIT AUTORADIO / CARPLAY (Spécial Conduite) */}
+        {uxMode === 'tunnel_cockpit' && (
+          <TunnelCockpitCarplay
+            step={tunnelStep}
+            setStep={setTunnelStep}
+            startCity={startCity}
+            setStartCity={setStartCity}
+            endCity={endCity}
+            setEndCity={setEndCity}
+            maxDetourKm={maxDetourKm}
+            setMaxDetourKm={setMaxDetourKm}
+            avoidTolls={avoidTolls}
+            setAvoidTolls={(avoid) => {
+              setAvoidTolls(avoid);
+              if (routeResult) handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
+            }}
+            onSearch={(s, e, d, avoid) => performSearch(s, e, d, events, avoid)}
+            isLoading={isLoading}
+            routeResult={routeResult}
+            activeRouteId={activeRouteId}
+            onSelectRoute={handleSelectRoute}
+            startLocation={startLocation}
+            endLocation={endLocation}
+            events={displayedEvents}
+            onSelectEvent={(evt) => setSelectedEvent(evt)}
+          />
+        )}
+
+        {/* VERSION 4 : VUE COMPLÈTE CLASSIQUE (Originale) */}
+        {uxMode === 'classic' && (
+          <>
+            <ItineraryForm
+              startCity={startCity}
+              setStartCity={setStartCity}
+              endCity={endCity}
+              setEndCity={setEndCity}
+              date={date}
+              setDate={setDate}
+              maxDetourKm={maxDetourKm}
+              setMaxDetourKm={setMaxDetourKm}
+              avoidTolls={avoidTolls}
+              setAvoidTolls={(avoid) => {
+                setAvoidTolls(avoid);
+                if (routeResult) {
+                  handleSelectRoute(avoid ? 'bis_toll_free' : 'primary');
+                }
+              }}
+              onSearch={() => performSearch(startCity, endCity, maxDetourKm, events, avoidTolls)}
+              isLoading={isLoading}
             />
-          </div>
 
-          {/* Section Liste / Timeline chronologique */}
-          <div className={`space-y-3 lg:col-span-5 ${viewMode === 'map' ? 'hidden lg:block' : 'block'}`}>
-            <div className="flex items-center justify-between pb-1">
-              <h2 className="text-xs font-display font-bold text-[#f5d77f] uppercase tracking-wider flex items-center gap-1.5">
-                {showOnlyFavorites ? (
-                  <>
-                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                    Mes Salons & Milongas Enregistrés
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
-                    Salons & Milongas ordonnés sur le trajet
-                  </>
-                )}
-              </h2>
-              <span className="text-xs text-amber-200/60 font-mono font-medium">
-                {displayedEvents.length} résultat{displayedEvents.length > 1 ? 's' : ''}
-              </span>
-            </div>
+            {routeResult && routeResult.routes && routeResult.routes.length > 1 && (
+              <RouteSelector
+                routes={routeResult.routes}
+                activeRouteId={activeRouteId}
+                onSelectRoute={handleSelectRoute}
+              />
+            )}
 
-            {displayedEvents.length === 0 ? (
-              <div className="bg-[#1b1210] rounded-2xl p-8 border border-[#d4af37]/35 text-center space-y-2 shadow-lg">
-                <p className="font-bold text-[#f5d77f] text-base">
-                  {showOnlyFavorites
-                    ? 'Aucun favori enregistré sur cet itinéraire'
-                    : 'Aucune milonga dans ce rayon'}
-                </p>
-                <p className="text-xs text-amber-200/80">
-                  {showOnlyFavorites
-                    ? 'Cliquez sur le cœur d’une milonga pour l’enregistrer et la consulter même sans 4G.'
-                    : "Augmentez le curseur de détour (ex: 40 ou 50 km) ou essayez l'autre itinéraire pour trouver les salons."}
-                </p>
-                {showOnlyFavorites ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowOnlyFavorites(false)}
-                    className="mt-3 px-3.5 py-1.5 rounded-lg bg-[#8e1c2e] hover:bg-[#aa2137] text-[#fce59e] border border-[#d4af37]/60 font-bold text-xs uppercase tracking-wide transition cursor-pointer shadow-md"
-                  >
-                    Voir tous les salons
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setMaxDetourKm(50)}
-                    className="mt-3 px-3.5 py-1.5 rounded-lg bg-[#8e1c2e] hover:bg-[#aa2137] text-[#fce59e] border border-[#d4af37]/60 font-bold text-xs uppercase tracking-wide transition cursor-pointer shadow-md"
-                  >
-                    Passer le détour à 50 km
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
-                {displayedEvents.map((evt) => (
-                  <EventCard
-                    key={evt.id}
-                    event={evt}
-                    isSelected={currentSelected?.id === evt.id}
-                    onSelect={(e) => setSelectedEvent(e)}
-                  />
-                ))}
+            {routeResult && startLocation && endLocation && (
+              <div className="bg-[#1b1210] rounded-xl p-3.5 border border-[#d4af37]/40 shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[#f5d77f] flex items-center gap-1.5 text-sm sm:text-base tracking-wide">
+                    <Route className="w-4 h-4 text-[#d4af37]" />
+                    {startLocation.name} ➔ {endLocation.name}
+                  </span>
+                  <span className="text-[#d4af37]/40">•</span>
+                  <span className="text-amber-100 font-semibold font-mono">
+                    {routeResult.totalDistanceKm} km
+                  </span>
+                  <span className="text-[#d4af37]/40">•</span>
+                  <span className="text-amber-200/80 font-medium">
+                    ~{Math.floor(routeResult.totalDurationMinutes / 60)}h{routeResult.totalDurationMinutes % 60 ? (routeResult.totalDurationMinutes % 60).toString().padStart(2, '0') : ''} de route
+                  </span>
+                  <span className="text-[#d4af37]/40">•</span>
+                  <span className={`font-mono text-xs font-semibold px-2 py-0.5 rounded ${
+                    routeResult.isTollFree
+                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/40'
+                      : 'bg-amber-950/80 text-amber-300 border border-amber-600/40'
+                  }`}>
+                    {routeResult.isTollFree ? '0 € péage' : `~${routeResult.estimatedTollEur} € péage`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 font-medium">
+                  <span className="text-[#fce59e] font-bold bg-[#8e1c2e] px-2.5 py-1 rounded-lg border border-[#d4af37]/50 shadow-sm">
+                    {displayedEvents.length} {showOnlyFavorites ? 'favori' : 'salon'}{displayedEvents.length > 1 ? 's' : ''} sur la route
+                  </span>
+                  <span className="text-amber-200/50 text-xs hidden md:inline font-mono">
+                    (détour max : {maxDetourKm} km)
+                  </span>
+                </div>
               </div>
             )}
-          </div>
 
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              <div className={`lg:col-span-7 h-[480px] lg:h-[580px] ${viewMode === 'list' ? 'hidden lg:block' : 'block'}`}>
+                <TangoMap
+                  startLocation={startLocation}
+                  endLocation={endLocation}
+                  routeCoords={routeResult?.coordinates || []}
+                  routes={routeResult?.routes || []}
+                  activeRouteId={activeRouteId}
+                  onSelectRouteId={handleSelectRoute}
+                  events={displayedEvents}
+                  selectedEvent={currentSelected}
+                  onSelectEvent={(evt) => setSelectedEvent(evt)}
+                />
+              </div>
 
+              <div className={`space-y-3 lg:col-span-5 ${viewMode === 'map' ? 'hidden lg:block' : 'block'}`}>
+                <div className="flex items-center justify-between pb-1">
+                  <h2 className="text-xs font-display font-bold text-[#f5d77f] uppercase tracking-wider flex items-center gap-1.5">
+                    {showOnlyFavorites ? (
+                      <>
+                        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                        Mes Salons & Milongas Enregistrés
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+                        Salons & Milongas ordonnés sur le trajet
+                      </>
+                    )}
+                  </h2>
+                  <span className="text-xs text-amber-200/60 font-mono font-medium">
+                    {displayedEvents.length} résultat{displayedEvents.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {displayedEvents.length === 0 ? (
+                  <div className="bg-[#1b1210] rounded-2xl p-8 border border-[#d4af37]/35 text-center space-y-2 shadow-lg">
+                    <p className="font-bold text-[#f5d77f] text-base">
+                      {showOnlyFavorites
+                        ? 'Aucun favori enregistré sur cet itinéraire'
+                        : 'Aucune milonga dans ce rayon'}
+                    </p>
+                    <p className="text-xs text-amber-200/80">
+                      {showOnlyFavorites
+                        ? 'Cliquez sur le cœur d’une milonga pour l’enregistrer et la consulter même sans 4G.'
+                        : "Augmentez le curseur de détour (ex: 40 ou 50 km) ou essayez l'autre itinéraire pour trouver les salons."}
+                    </p>
+                    {showOnlyFavorites ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowOnlyFavorites(false)}
+                        className="mt-3 px-3.5 py-1.5 rounded-lg bg-[#8e1c2e] hover:bg-[#aa2137] text-[#fce59e] border border-[#d4af37]/60 font-bold text-xs uppercase tracking-wide transition cursor-pointer shadow-md"
+                      >
+                        Voir tous les salons
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setMaxDetourKm(50)}
+                        className="mt-3 px-3.5 py-1.5 rounded-lg bg-[#8e1c2e] hover:bg-[#aa2137] text-[#fce59e] border border-[#d4af37]/60 font-bold text-xs uppercase tracking-wide transition cursor-pointer shadow-md"
+                      >
+                        Passer le détour à 50 km
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                    {displayedEvents.map((evt) => (
+                      <EventCard
+                        key={evt.id}
+                        event={evt}
+                        isSelected={currentSelected?.id === evt.id}
+                        onSelect={(e) => setSelectedEvent(e)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       {/* Modal Détail Fiche Complète (4 Blocs + Deep Links GPS) */}

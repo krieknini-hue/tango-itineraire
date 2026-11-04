@@ -37,6 +37,11 @@
   - Titres de milongas et cartons de bal : `Playfair Display`.
   - Données denses, labels de formulaires, badges et mobile : `Plus Jakarta Sans` (sans empattements, contrasté, zéro italique en micro-tailles pour un confort immédiat en conduite).
 - **Composants Décoratifs Dédiés :** `FileteadoOrnaments.tsx` (`FileteadoCorner`, `FileteadoDivider`, `BandoneonIcon`).
+- **Laboratoire UX & Tunnels (`src/components/tunnels/` & `LabSelectorBar.tsx`) :**
+  - `TunnelGpsWizard.tsx` : Parcours guidé 3 étapes avec carrousel d'escales.
+  - `TunnelGuichetExpress.tsx` : Parcours billet express 2 questions et barre de trajet repliable.
+  - `TunnelCockpitCarplay.tsx` : Interface autoradio à boutons XXL et affichage "Prochaine escale".
+  - 4 thèmes CSS dynamiques dans `src/index.css` (`.theme-1950`, `.theme-midnight`, `.theme-tortoni`, `.theme-cockpit_oled`).
 
 ## Stratégie d'Organisation Multi-Conversations
 Le projet est découpé en 3 conversations ciblées :

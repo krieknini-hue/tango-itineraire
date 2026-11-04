@@ -36,6 +36,99 @@ html, body, #root {
   font-family: 'Playfair Display', Georgia, serif;
 }
 
+/* ==========================================================================
+   VARIANTES DE DESIGN DYNAMIQUES (Sélecteur Mode Test)
+   ========================================================================== */
+
+/* 2. 🌙 Milonga de Minuit (Bleu Nuit Puerto Madero, Cuivre Rosé & Néon Magenta) */
+.theme-midnight {
+  background: radial-gradient(ellipse at top, #132347 0%, #091124 55%, #040812 100%) !important;
+  color: #f0f6ff !important;
+}
+.theme-midnight .bg-\[\#1b1210\],
+.theme-midnight .bg-\[\#150e0c\]\/95 {
+  background-color: #0e1930 !important;
+}
+.theme-midnight .bg-\[\#120b0a\],
+.theme-midnight .bg-\[\#140c0b\] {
+  background-color: #070d19 !important;
+}
+.theme-midnight .bg-\[\#8e1c2e\] {
+  background-color: #9d174d !important;
+}
+.theme-midnight .border-\[\#d4af37\],
+.theme-midnight .border-\[\#d4af37\]\/60,
+.theme-midnight .border-\[\#d4af37\]\/50,
+.theme-midnight .border-\[\#d4af37\]\/45,
+.theme-midnight .border-\[\#d4af37\]\/40 {
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+.theme-midnight .text-\[\#f5d77f\] {
+  color: #7dd3fc !important;
+}
+
+/* 3. ☕ Café Tortoni Jour (Crème Partition, Expresso & Bordeaux — Haute Lisibilité Soleil) */
+.theme-tortoni {
+  background: radial-gradient(ellipse at top, #fbf6eb 0%, #f2e6cf 60%, #e6d5b8 100%) !important;
+  color: #24140e !important;
+}
+.theme-tortoni .bg-\[\#1b1210\],
+.theme-tortoni .bg-\[\#150e0c\]\/95 {
+  background-color: #fffaf0 !important;
+  color: #24140e !important;
+  box-shadow: 0 10px 25px rgba(60, 35, 15, 0.14) !important;
+}
+.theme-tortoni .bg-\[\#120b0a\],
+.theme-tortoni .bg-\[\#140c0b\],
+.theme-tortoni .bg-\[\#211412\] {
+  background-color: #f3e8d2 !important;
+  color: #24140e !important;
+}
+.theme-tortoni .text-\[\#f5d77f\] {
+  color: #7a1424 !important;
+}
+.theme-tortoni .text-\[\#f7f2e7\] {
+  color: #1f110c !important;
+}
+.theme-tortoni .text-amber-200,
+.theme-tortoni .text-amber-200\/80,
+.theme-tortoni .text-amber-200\/75,
+.theme-tortoni .text-amber-200\/70,
+.theme-tortoni .text-amber-200\/60,
+.theme-tortoni .text-amber-100 {
+  color: #4a2c1d !important;
+}
+.theme-tortoni .border-\[\#d4af37\],
+.theme-tortoni .border-\[\#d4af37\]\/60,
+.theme-tortoni .border-\[\#d4af37\]\/50,
+.theme-tortoni .border-\[\#d4af37\]\/45,
+.theme-tortoni .border-\[\#d4af37\]\/40 {
+  border-color: rgba(138, 92, 24, 0.55) !important;
+}
+
+/* 4. 🚘 Cockpit OLED Autoradio (Noir Absolu, Ambre & Vert Émeraude Haute Visibilité) */
+.theme-cockpit_oled {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.theme-cockpit_oled .bg-\[\#1b1210\],
+.theme-cockpit_oled .bg-\[\#150e0c\]\/95 {
+  background-color: #080808 !important;
+}
+.theme-cockpit_oled .bg-\[\#120b0a\],
+.theme-cockpit_oled .bg-\[\#140c0b\] {
+  background-color: #000000 !important;
+}
+.theme-cockpit_oled .text-\[\#f5d77f\],
+.theme-cockpit_oled .text-\[\#fce59e\] {
+  color: #fbbf24 !important;
+}
+.theme-cockpit_oled .border-\[\#d4af37\],
+.theme-cockpit_oled .border-\[\#d4af37\]\/60,
+.theme-cockpit_oled .border-\[\#d4af37\]\/50 {
+  border-color: #fbbf24 !important;
+}
+
 /* Effets & Finitions Âge d'Or */
 .gold-gradient-text {
   background: linear-gradient(135deg, #fce59e 0%, #d4af37 45%, #b1872b 100%);
