@@ -26,6 +26,9 @@ Le projet intègre désormais :
   - Loader "Ocho" en SVG représentant une boucle continue en 8 avec animation `stroke-dashoffset`.
   - Micro-interaction de validation dorée déclenchée au lancement du GPS.
 - [x] Build de production Vite & TypeScript sans erreur.
+- [x] Déploiement GitHub effectué :
+  - Dépôt source : https://github.com/krieknini-hue/tango-itineraire
+  - Application en ligne (GitHub Pages) : https://krieknini-hue.github.io/tango-itineraire/
 
 ## Tâches en cours / Backlog
 - [ ] Retours d'utilisateurs sur les longs trajets de nuit.
