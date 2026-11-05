@@ -1,18 +1,31 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-/* --- THÈME & IDENTITÉ VISUELLE : ÂGE D'OR DU TANGO (BUENOS AIRES 1950) --- */
+/* ==========================================================================
+   DESIGN TOKENS & PALETTE "MILONGA NOCTURNE" (TRÈS HAUT CONTRASTE)
+   Fond: #0F0F14 | Cartes: #1A1A24 | Rouge Tango: #E63946 | Or Porteño: #F4A261 | Texte: #F8F9FA
+   ========================================================================== */
 
 :root {
-  --color-tango-bg: #120b0a;
-  --color-tango-mahogany: #1b1210;
-  --color-tango-mahogany-light: #261a17;
-  --color-tango-gold: #d4af37;
-  --color-tango-gold-light: #f5d77f;
-  --color-tango-gold-dark: #987822;
-  --color-tango-carmine: #8e1c2e;
-  --color-tango-carmine-dark: #5e0f1c;
-  --color-tango-cream: #fbf7ee;
+  /* Design Tokens principaux */
+  --bg-primary: #0F0F14;
+  --bg-card: #1A1A24;
+  --accent-red: #E63946;
+  --accent-gold: #F4A261;
+  --text-primary: #F8F9FA;
+  --text-secondary: #B8BCC8;
+  --border-tango: rgba(244, 162, 97, 0.4);
+
+  /* Variables thématiques Tango rétrocompatibles & contrastées */
+  --color-tango-bg: #0F0F14;
+  --color-tango-mahogany: #1A1A24;
+  --color-tango-mahogany-light: #252536;
+  --color-tango-gold: #F4A261;
+  --color-tango-gold-light: #f7b27d;
+  --color-tango-gold-dark: #d88947;
+  --color-tango-carmine: #E63946;
+  --color-tango-carmine-dark: #b8222e;
+  --color-tango-cream: #F8F9FA;
   --color-tango-celeste: #5b8ea6;
 }
 
@@ -28,8 +41,8 @@ html, body, #root {
   overscroll-behavior-y: none;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-  background-color: #120b0a;
-  color: #f7f2e7;
+  background-color: var(--color-tango-bg, #0F0F14);
+  color: var(--color-tango-cream, #F8F9FA);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -51,10 +64,143 @@ html, body, #root {
 }
 
 /* ==========================================================================
+   HARMONISATION PALETTE MILONGA NOCTURNE SUR LES COMPOSANTS EXISTANTS
+   ========================================================================== */
+
+/* Fond principal & Cartes */
+.theme-1950,
+:root:not(.theme-midnight):not(.theme-tortoni):not(.theme-cockpit_oled) {
+  background-color: #0F0F14;
+  color: #F8F9FA;
+}
+
+/* Re-mappage dynamique pour haute lisibilité Milonga Nocturne */
+.bg-\[\#120b0a\],
+.bg-\[\#140c0b\] {
+  background-color: #0F0F14 !important;
+}
+
+.bg-\[\#1b1210\] {
+  background-color: #1A1A24 !important;
+}
+
+.bg-\[\#150e0c\],
+.bg-\[\#150e0c\]\/95 {
+  background-color: rgba(26, 26, 36, 0.96) !important;
+}
+
+.bg-\[\#211412\],
+.bg-\[\#241714\] {
+  background-color: #242436 !important;
+}
+
+/* Accent Rouge Tango */
+.bg-\[\#8e1c2e\] {
+  background-color: #E63946 !important;
+}
+.hover\:bg-\[\#a62237\]:hover,
+.hover\:bg-\[\#aa2137\]:hover {
+  background-color: #cf2936 !important;
+}
+
+/* Accent Or Porteño */
+.text-\[\#f5d77f\],
+.text-\[\#fce59e\] {
+  color: #F4A261 !important;
+}
+
+.border-\[\#d4af37\],
+.border-\[\#d4af37\]\/60,
+.border-\[\#d4af37\]\/50,
+.border-\[\#d4af37\]\/45,
+.border-\[\#d4af37\]\/40,
+.border-\[\#d4af37\]\/35,
+.border-\[\#d4af37\]\/30 {
+  border-color: rgba(244, 162, 97, 0.45) !important;
+}
+
+/* Texte principal */
+.text-\[\#f7f2e7\] {
+  color: #F8F9FA !important;
+}
+
+/* ==========================================================================
+   MODE COCKPIT / VOITURE (CONDUITE) HAUTE SÉCURITÉ
+   - Police +35%
+   - Boutons interactifs >= 64px de haut avec large espacement
+   - Masquage des textes secondaires (< 2 secondes de temps de lecture)
+   ========================================================================== */
+
+.mode-driving {
+  font-size: 135% !important;
+}
+
+.mode-driving h1 {
+  font-size: 1.5em !important;
+}
+
+.mode-driving h2 {
+  font-size: 1.35em !important;
+}
+
+.mode-driving h3 {
+  font-size: 1.25em !important;
+}
+
+/* Hauteur minimale de 64px pour tous les boutons interactifs en mode conduite */
+.mode-driving button,
+.mode-driving a[role="button"],
+.mode-driving input[type="button"],
+.mode-driving input[type="submit"],
+.mode-driving .btn-driving,
+.mode-driving .btn-interactive {
+  min-height: 64px !important;
+  min-width: 64px;
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  border-radius: 1rem !important;
+  border-width: 2px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  touch-action: manipulation;
+}
+
+/* Espacement plus généreux entre les contrôles en mode conduite */
+.mode-driving .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+.mode-driving .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.35rem !important;
+}
+.mode-driving .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.6rem !important;
+}
+.mode-driving .gap-1\.5,
+.mode-driving .gap-2 {
+  gap: 1rem !important;
+}
+.mode-driving .gap-3 {
+  gap: 1.35rem !important;
+}
+
+/* Masquage des textes secondaires non essentiels (règle des 2 secondes) */
+.mode-driving .driving-hide-secondary,
+.mode-driving .text-secondary-detail,
+.mode-driving .ornament-detail {
+  display: none !important;
+}
+
+/* ==========================================================================
    VARIANTES DE DESIGN DYNAMIQUES (Sélecteur Mode Test)
    ========================================================================== */
 
-/* 2. 🌙 Milonga de Minuit (Bleu Nuit Puerto Madero, Cuivre Rosé & Néon Magenta) */
+/* 2. 🌙 Milonga de Minuit */
 .theme-midnight {
   background: radial-gradient(ellipse at top, #132347 0%, #091124 55%, #040812 100%) !important;
   color: #f0f6ff !important;
@@ -81,7 +227,7 @@ html, body, #root {
   color: #7dd3fc !important;
 }
 
-/* 3. ☕ Café Tortoni Jour (Crème Partition, Expresso & Bordeaux — Haute Lisibilité Soleil) */
+/* 3. ☕ Café Tortoni Jour */
 .theme-tortoni {
   background: radial-gradient(ellipse at top, #fbf6eb 0%, #f2e6cf 60%, #e6d5b8 100%) !important;
   color: #24140e !important;
@@ -120,7 +266,7 @@ html, body, #root {
   border-color: rgba(138, 92, 24, 0.55) !important;
 }
 
-/* 4. 🚘 Cockpit OLED Autoradio (Noir Absolu, Ambre & Vert Émeraude Haute Visibilité) */
+/* 4. 🚘 Cockpit OLED Autoradio (Noir Absolu) */
 .theme-cockpit_oled {
   background: #000000 !important;
   color: #ffffff !important;
@@ -143,26 +289,88 @@ html, body, #root {
   border-color: #fbbf24 !important;
 }
 
-/* Effets & Finitions Âge d'Or */
+/* ==========================================================================
+   ANIMATIONS & FINITIONS VISUELLES TANGO ("JUICE")
+   - Animation d'accordéon "Bandonéon" (cubic-bezier avec rebond)
+   - Loader en boucle en 8 (Ocho de tango)
+   - Micro-interaction pulsée dorée (lancement GPS)
+   ========================================================================== */
+
+/* 1. Animation Bandonéon (Dépliage fluide avec rebond) */
+@keyframes bandoneonOpen {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.72) translateY(-8px);
+  }
+  65% {
+    transform: scaleY(1.03) translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+  }
+}
+
+.animate-bandoneon {
+  animation: bandoneonOpen 380ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: top center;
+}
+
+/* 2. Animation Ocho (Tracé en boucle continue en 8) */
+@keyframes ochoDash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -240;
+  }
+}
+
+.animate-ocho-trace {
+  stroke-dasharray: 45 15;
+  animation: ochoDash 2.5s linear infinite;
+}
+
+/* 3. Micro-interaction de validation Tango (Étincelles & Rebond) */
+@keyframes tangoLaunchPulse {
+  0% {
+    transform: scale(0.96);
+    box-shadow: 0 0 0 0 rgba(244, 162, 97, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px 8px rgba(244, 162, 97, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(244, 162, 97, 0);
+  }
+}
+
+.animate-tango-launch {
+  animation: tangoLaunchPulse 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Effets & Finitions Milonga Nocturne */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #fce59e 0%, #d4af37 45%, #b1872b 100%);
+  background: linear-gradient(135deg, #f7b27d 0%, #F4A261 50%, #d88947 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .carmine-gradient-text {
-  background: linear-gradient(135deg, #f87171 0%, #dc2626 50%, #991b1b 100%);
+  background: linear-gradient(135deg, #ff6b77 0%, #E63946 50%, #b8222e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gold-border-filigree {
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.08), 0 8px 24px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(244, 162, 97, 0.45);
+  box-shadow: inset 0 0 12px rgba(244, 162, 97, 0.12), 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .ticket-border {
-  border: 1px dashed rgba(212, 175, 55, 0.35);
+  border: 1px dashed rgba(244, 162, 97, 0.35);
 }
 
 /* Leaflet fix for z-index with sticky navigation */
@@ -173,24 +381,24 @@ html, body, #root {
   z-index: 20 !important;
 }
 
-/* Personnalisation Leaflet rétro Buenos Aires */
+/* Personnalisation Leaflet Milonga Nocturne */
 .leaflet-popup-content-wrapper {
-  background: #1b1210 !important;
-  color: #f7f2e7 !important;
-  border: 1px solid #d4af37 !important;
+  background: #1A1A24 !important;
+  color: #F8F9FA !important;
+  border: 1px solid #F4A261 !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 8px rgba(212, 175, 55, 0.3) !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 8px rgba(244, 162, 97, 0.3) !important;
   padding: 4px !important;
 }
 
 .leaflet-popup-tip {
-  background: #1b1210 !important;
-  border: 1px solid #d4af37 !important;
+  background: #1A1A24 !important;
+  border: 1px solid #F4A261 !important;
 }
 
 .leaflet-container {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
-  background-color: #120b0a !important;
+  background-color: #0F0F14 !important;
 }
 
 /* Scrollbar dorée vintage */
@@ -199,13 +407,13 @@ html, body, #root {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #150d0c;
+  background: #1A1A24;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3e2823;
+  background: #35354a;
   border-radius: 4px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(244, 162, 97, 0.25);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4af37;
+  background: #F4A261;
 }

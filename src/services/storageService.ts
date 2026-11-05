@@ -98,6 +98,49 @@ export function getUserPreferences(): UserPreferences {
   }
 }
 
+// --- MÉMO DERNIER KILOMÈTRE (PARKING, CODE D'ACCÈS, QUALITÉ DU SOL) ---
+
+export interface LastMileMemo {
+  parkingInfo: string;
+  accessCode: string;
+  floorQuality: 'glissant' | 'normal' | 'accrocheur' | '';
+}
+
+const LAST_MILE_PREFIX = 'tango_last_mile_';
+
+export function getLastMileMemo(eventId: string): LastMileMemo {
+  try {
+    const raw = localStorage.getItem(`${LAST_MILE_PREFIX}${eventId}`);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.warn('Erreur lecture mémo dernier kilomètre:', e);
+  }
+  return {
+    parkingInfo: '',
+    accessCode: '',
+    floorQuality: '',
+  };
+}
+
+export function saveLastMileMemo(eventId: string, memo: Partial<LastMileMemo>): LastMileMemo {
+  try {
+    const current = getLastMileMemo(eventId);
+    const updated: LastMileMemo = { ...current, ...memo };
+    localStorage.setItem(`${LAST_MILE_PREFIX}${eventId}`, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.warn('Erreur sauvegarde mémo dernier kilomètre:', e);
+    return {
+      parkingInfo: memo.parkingInfo || '',
+      accessCode: memo.accessCode || '',
+      floorQuality: memo.floorQuality || '',
+    };
+  }
+}
+
+
 export function saveUserPreferences(prefs: Partial<UserPreferences>): void {
   try {
     const current = getUserPreferences();

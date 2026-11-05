@@ -24,7 +24,11 @@ import type { TangoEvent, CityLocation, RouteResult } from './types/tango';
 import { resolveCity, getRoute, filterEventsAlongRoute } from './services/routingService';
 import { reportEmergencyCancellation } from './services/supabaseService';
 import { useAuth } from './context';
-import { Route, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import { Route, Sparkles, AlertCircle, Heart, Car, Zap } from 'lucide-react';
+import { BottomNav } from './components/BottomNav';
+import { useWakeLock } from './services/useWakeLock';
+import { formatDurationToTandas } from './modules/tangoMetrics';
+import { OchoLoader } from './components/FileteadoOrnaments';
 
 export function App() {
   const { favoriteIds } = useAuth();
@@ -73,6 +77,31 @@ export function App() {
     }
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Mode Conduite / Cockpit global (polices +35%, boutons >= 64px, wakeLock actif, lecture < 2s)
+  const [isDrivingMode, setIsDrivingMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('tango_driving_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Verrouillage écran (Screen Wake Lock API avec fallback)
+  const { isActive: isWakeLockActive, isSupported: isWakeLockSupported } = useWakeLock(isDrivingMode);
+
+  const handleToggleDrivingMode = () => {
+    setIsDrivingMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('tango_driving_mode', String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   const handleCloseGuide = () => {
     setIsGuideOpen(false);
@@ -262,7 +291,9 @@ export function App() {
 
   return (
     <div
-      className={`theme-${designTheme} min-h-screen bg-[#120b0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2a1713]/70 via-[#150d0c] to-[#0d0706] text-[#f7f2e7] flex flex-col font-sans pb-12 selection:bg-[#d4af37] selection:text-[#120b0a]`}
+      className={`theme-${designTheme} ${
+        isDrivingMode ? 'mode-driving' : ''
+      } min-h-screen bg-[#0F0F14] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1A1A24]/90 via-[#0F0F14] to-[#08080C] text-[#F8F9FA] flex flex-col font-sans pb-24 md:pb-12 selection:bg-[#F4A261] selection:text-[#0F0F14]`}
     >
       {/* Tiroir Labo Test (ouvert via le bouton roue dentée ⚙️) */}
       <LabSelectorBar
@@ -282,7 +313,40 @@ export function App() {
       {/* Bandeau d'état réseau hors-ligne nomade */}
       <OfflineBanner />
 
-      {/* Barre de navigation allégée avec tiroir menu & bouton roue dentée */}
+      {/* HUD & BANDEAU MODE CONDUITE / VOITURE (Haute sécurité au volant) */}
+      {isDrivingMode && (
+        <aside
+          aria-label="Mode conduite actif"
+          className="bg-emerald-950 border-b-2 border-emerald-400 text-emerald-100 px-3 py-2 text-xs sm:text-sm font-semibold flex items-center justify-between gap-2 shadow-xl sticky top-[48px] z-20"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <span className="p-1 rounded-lg bg-emerald-600 text-white shrink-0">
+              <Car className="w-4 h-4" />
+            </span>
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="font-bold uppercase tracking-wider text-white">Mode Conduite Actif</span>
+              <span className="text-emerald-300">•</span>
+              <span className="text-emerald-200 truncate flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                {isWakeLockActive
+                  ? 'Écran maintenu allumé (WakeLock ⚡)'
+                  : isWakeLockSupported
+                  ? 'Verrouillage écran actif'
+                  : 'Mode grand contraste & gros boutons'}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleDrivingMode}
+            className="px-2.5 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-300 font-bold text-xs uppercase cursor-pointer shrink-0 transition"
+          >
+            Quitter
+          </button>
+        </aside>
+      )}
+
+      {/* Barre de navigation allégée avec bouton Mode Conduite, favoris & menu */}
       <Navbar
         viewMode={viewMode}
         setViewMode={setViewMode}
@@ -302,15 +366,18 @@ export function App() {
         setShowOnlyFavorites={setShowOnlyFavorites}
         favoritesCount={favoriteIds.length}
         showViewToggle={uxMode === 'classic'}
+        isDrivingMode={isDrivingMode}
+        onToggleDrivingMode={handleToggleDrivingMode}
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
       />
 
       {/* Conteneur principal */}
       <main className="max-w-6xl w-full mx-auto px-3 sm:px-4 pt-4 sm:pt-6 space-y-4">
-        {/* Indicateur de chargement initial des données réelles */}
+        {/* Indicateur de chargement initial stylisé avec la boucle Ocho */}
         {eventsLoading && (
-          <div className="bg-[#1b1210] border border-[#d4af37]/40 rounded-xl p-3 text-xs text-[#fce59e] flex items-center justify-center gap-2 shadow-lg">
-            <Sparkles className="w-4 h-4 text-[#d4af37] animate-spin" />
-            <span>Chargement des milongas et festivals réels en France...</span>
+          <div className="bg-[#1b1210] border border-[#d4af37]/40 rounded-2xl p-6 shadow-xl flex items-center justify-center">
+            <OchoLoader size={56} label="Chargement des milongas et festivals réels en France..." />
           </div>
         )}
 
@@ -485,6 +552,9 @@ export function App() {
                   <span className="text-[#d4af37]/40">•</span>
                   <span className="text-amber-200/80 font-medium">
                     ~{Math.floor(routeResult.totalDurationMinutes / 60)}h{routeResult.totalDurationMinutes % 60 ? (routeResult.totalDurationMinutes % 60).toString().padStart(2, '0') : ''} de route
+                    <span className="text-[#F4A261] font-semibold ml-1.5 font-mono">
+                      (🎶 ~{formatDurationToTandas(routeResult.totalDurationMinutes).tandasCount} tandas)
+                    </span>
                   </span>
                   <span className="text-[#d4af37]/40">•</span>
                   <span className={`font-mono text-xs font-semibold px-2 py-0.5 rounded ${
@@ -507,22 +577,10 @@ export function App() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-              <div className={`lg:col-span-7 h-[480px] lg:h-[580px] ${viewMode === 'list' ? 'hidden lg:block' : 'block'}`}>
-                <TangoMap
-                  startLocation={startLocation}
-                  endLocation={endLocation}
-                  routeCoords={routeResult?.coordinates || []}
-                  routes={routeResult?.routes || []}
-                  activeRouteId={activeRouteId}
-                  onSelectRouteId={handleSelectRoute}
-                  events={displayedEvents}
-                  selectedEvent={currentSelected}
-                  onSelectEvent={(evt) => setSelectedEvent(evt)}
-                />
-              </div>
-
-              <div className={`space-y-3 lg:col-span-5 ${viewMode === 'map' ? 'hidden lg:block' : 'block'}`}>
+            {/* MISE EN PAGE SCINDÉE (SPLIT-VIEW) DÈS 768px (TABLETTE / DESKTOP) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+              {/* Colonne GAUCHE (>= 768px) : Liste des itinéraires, étapes & milongas */}
+              <div className={`space-y-3 md:col-span-5 ${viewMode === 'map' ? 'hidden md:block' : 'block'}`}>
                 <div className="flex items-center justify-between pb-1">
                   <h2 className="text-xs font-display font-bold text-[#f5d77f] uppercase tracking-wider flex items-center gap-1.5">
                     {showOnlyFavorites ? (
@@ -573,7 +631,7 @@ export function App() {
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[580px] md:max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
                     {displayedEvents.map((evt) => (
                       <EventCard
                         key={evt.id}
@@ -585,10 +643,61 @@ export function App() {
                   </div>
                 )}
               </div>
+
+              {/* Colonne DROITE (>= 768px) : Carte Interactive & Détails */}
+              <div className={`md:col-span-7 h-[480px] md:h-[calc(100vh-220px)] md:min-h-[560px] md:sticky md:top-20 ${
+                viewMode === 'list' ? 'hidden md:block' : 'block'
+              }`}>
+                <TangoMap
+                  startLocation={startLocation}
+                  endLocation={endLocation}
+                  routeCoords={routeResult?.coordinates || []}
+                  routes={routeResult?.routes || []}
+                  activeRouteId={activeRouteId}
+                  onSelectRouteId={handleSelectRoute}
+                  events={displayedEvents}
+                  selectedEvent={currentSelected}
+                  onSelectEvent={(evt) => setSelectedEvent(evt)}
+                />
+              </div>
             </div>
           </>
         )}
       </main>
+
+      {/* Barre de navigation mobile fixée en bas (Zone naturelle du pouce < 768px) */}
+      <BottomNav
+        currentTab={
+          uxMode === 'tunnel_guichet' || uxMode === 'tunnel_gps'
+            ? tunnelStep < 3
+              ? 'trajet'
+              : viewMode === 'map'
+              ? 'carte'
+              : 'billets'
+            : viewMode === 'map'
+            ? 'carte'
+            : 'billets'
+        }
+        onChangeTab={(tab) => {
+          if (tab === 'trajet') {
+            setTunnelStep(2);
+            setShowOnlyFavorites(false);
+          } else if (tab === 'billets') {
+            setTunnelStep(3);
+            setViewMode('list');
+          } else if (tab === 'carte') {
+            setTunnelStep(3);
+            setViewMode('map');
+          }
+        }}
+        resultsCount={displayedEvents.length}
+        showOnlyFavorites={showOnlyFavorites}
+        onToggleFavorites={() => setShowOnlyFavorites((prev) => !prev)}
+        favoritesCount={favoriteIds.length}
+        isDrivingMode={isDrivingMode}
+        onToggleDrivingMode={handleToggleDrivingMode}
+        onOpenMenu={() => setIsDrawerOpen(true)}
+      />
 
       {/* Modal Détail Fiche Complète (4 Blocs + Deep Links GPS) */}
       <EventDetailModal

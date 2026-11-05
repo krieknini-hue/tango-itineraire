@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   UserRound,
+  Car,
 } from 'lucide-react';
 import { BandoneonIcon } from './FileteadoOrnaments';
 import { useAuth } from '../context';
@@ -33,6 +34,10 @@ interface NavbarProps {
   setShowOnlyFavorites?: (val: boolean) => void;
   favoritesCount?: number;
   showViewToggle?: boolean;
+  isDrivingMode?: boolean;
+  onToggleDrivingMode?: () => void;
+  isDrawerOpen?: boolean;
+  setIsDrawerOpen?: (open: boolean) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -51,10 +56,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   setShowOnlyFavorites,
   favoritesCount = 0,
   showViewToggle = false,
+  isDrivingMode = false,
+  onToggleDrivingMode,
+  isDrawerOpen: controlledDrawerOpen,
+  setIsDrawerOpen: setControlledDrawerOpen,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const { profile } = useProfileState();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
+
+  const isDrawerOpen = controlledDrawerOpen !== undefined ? controlledDrawerOpen : internalDrawerOpen;
+  const setIsDrawerOpen = setControlledDrawerOpen || setInternalDrawerOpen;
 
   return (
     <>
@@ -113,6 +125,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="hidden sm:inline">Liste ({resultsCount})</span>
                 </button>
               </div>
+            )}
+
+            {/* BOUTON D'ACCÈS RAPIDE HAUT D'ÉCRAN : MODE CONDUITE / VOITURE (CarPlay / Autoradio) */}
+            {onToggleDrivingMode && (
+              <button
+                type="button"
+                onClick={onToggleDrivingMode}
+                className={`flex items-center gap-1.5 min-h-[38px] px-2.5 sm:px-3 rounded-xl text-xs font-bold transition cursor-pointer border shadow-md ${
+                  isDrivingMode
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-300 shadow-emerald-950/60 ring-2 ring-emerald-400/40'
+                    : 'bg-[#242436] hover:bg-[#2d2d44] text-[#F4A261] border-[#F4A261]/40 hover:border-[#F4A261]'
+                }`}
+                title={
+                  isDrivingMode
+                    ? 'Mode Conduite ACTIF (Écran maintenu allumé ⚡ - Gros boutons - Lecture < 2s). Cliquer pour désactiver.'
+                    : 'Activer le Mode Conduite (empêche la mise en veille, polices +35%, boutons 64px)'
+                }
+                aria-label="Basculer le Mode Conduite"
+              >
+                <Car className={`w-4 h-4 ${isDrivingMode ? 'animate-bounce' : 'text-[#F4A261]'}`} />
+                <span className="hidden sm:inline uppercase tracking-wide">
+                  {isDrivingMode ? 'Conduite ⚡' : 'Conduite'}
+                </span>
+                {isDrivingMode && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping" />
+                )}
+              </button>
             )}
 
             {/* 1. Bouton Favoris rapide */}
@@ -193,6 +232,42 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               <div className="space-y-2.5">
+                {/* Mode Conduite Toggle dans le menu */}
+                {onToggleDrivingMode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      onToggleDrivingMode();
+                    }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition cursor-pointer ${
+                      isDrivingMode
+                        ? 'bg-emerald-950/80 border-emerald-400 text-emerald-200'
+                        : 'bg-[#120b0a] hover:bg-[#251815] border-[#d4af37]/40 text-[#f7f2e7]'
+                    }`}
+                  >
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                      isDrivingMode
+                        ? 'bg-emerald-600 text-white border-emerald-300'
+                        : 'bg-[#211412] text-[#d4af37] border-[#d4af37]/50'
+                    }`}>
+                      <Car className="w-4 h-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-[#f5d77f] flex items-center gap-1.5">
+                        <span>Mode Conduite / Voiture</span>
+                        {isDrivingMode && (
+                          <span className="text-[10px] bg-emerald-700 text-white px-1.5 py-0.2 rounded font-mono">
+                            ACTIF ⚡
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-amber-200/70 truncate">
+                        Boutons 64px, polices +35%, écran sans veille
+                      </div>
+                    </div>
+                  </button>
+                )}
                 {/* Profil Danseur (Rôle Guide / Suiveur / Les deux) */}
                 {onOpenProfile && (
                   <button

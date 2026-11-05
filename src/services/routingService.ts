@@ -282,11 +282,13 @@ export function filterEventsAlongRoute(
 
 export function getGpsNavigationLinks(event: TangoEvent) {
   const { lat, lng, address, city } = event;
+  // Format universel compatible Android Auto & smartphone (coords prioritaires avec fallback adresse)
+  const destQuery = (lat && lng) ? `${lat},${lng}` : encodeURIComponent(`${address || ''}, ${city || ''}`.trim());
   const label = encodeURIComponent(`${event.title} - ${address}, ${city}`);
   
   return {
-    waze: `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`,
-    googleMaps: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
-    appleMaps: `https://maps.apple.com/?daddr=${lat},${lng}&q=${label}`
+    waze: `https://waze.com/ul?q=${destQuery}&navigate=yes`,
+    googleMaps: `https://www.google.com/maps/dir/?api=1&destination=${destQuery}&travelmode=driving`,
+    appleMaps: `https://maps.apple.com/?daddr=${destQuery}&q=${label}`
   };
 }

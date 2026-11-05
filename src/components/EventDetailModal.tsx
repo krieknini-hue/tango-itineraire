@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   MapPin, 
@@ -14,7 +14,10 @@ import {
   CheckCircle2,
   Coffee,
   Layers,
-  Heart
+  Heart,
+  Key,
+  Copy,
+  Check,
 } from 'lucide-react';
 import type { TangoEvent } from '../types/tango';
 import { getGpsNavigationLinks } from '../services/routingService';
@@ -24,6 +27,9 @@ import { NomadLogisticsBlock } from './NomadLogisticsBlock';
 import { AttendeesBlock } from './AttendeesBlock';
 import { CarpoolBlock } from './CarpoolBlock';
 import { formatEventDate } from '../modules/nearby';
+import { formatDurationToTandas, calculateRemainingDanceTime } from '../modules/tangoMetrics';
+import { getLastMileMemo, saveLastMileMemo, type LastMileMemo } from '../services/storageService';
+import { FileteadoBorderOverlay } from './FileteadoOrnaments';
 
 interface EventDetailModalProps {
   event: TangoEvent | null;
@@ -37,12 +43,50 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
   onToggleCancellation,
 }) => {
   const { isFavorite, toggleFavorite } = useAuth();
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [launchingApp, setLaunchingApp] = useState<'waze' | 'maps' | null>(null);
+  const [lastMileMemo, setLastMileMemo] = useState<LastMileMemo>({
+    parkingInfo: '',
+    accessCode: '',
+    floorQuality: '',
+  });
+
+  // Met à jour le mémo quand l'événement change
+  useEffect(() => {
+    if (event?.id) {
+      setLastMileMemo(getLastMileMemo(event.id));
+    }
+  }, [event?.id]);
 
   if (!event) return null;
 
   const isFav = isFavorite(event.id);
   const gpsLinks = getGpsNavigationLinks(event);
   const isCancelled = event.status === 'cancelled';
+
+  const detourTandas = formatDurationToTandas(event.detourMinutes || Math.round((event.detourKm || 15) * 1.6));
+  const danceTime = calculateRemainingDanceTime(event, event.detourMinutes || 0);
+
+  const handleUpdateMemo = (patch: Partial<LastMileMemo>) => {
+    const updated = saveLastMileMemo(event.id, patch);
+    setLastMileMemo(updated);
+  };
+
+  const handleCopyCode = () => {
+    if (lastMileMemo.accessCode) {
+      navigator.clipboard.writeText(lastMileMemo.accessCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    }
+  };
+
+  const handleLaunchNav = (type: 'waze' | 'maps', url: string) => {
+    setLaunchingApp(type);
+    setTimeout(() => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setLaunchingApp(null);
+    }, 280);
+  };
 
   return (
     <div 
@@ -53,8 +97,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         className="relative w-full max-w-2xl bg-[#1b1210] rounded-3xl shadow-2xl border-2 border-[#d4af37]/70 overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Filet décoratif supérieur */}
+        {/* Filet décoratif supérieur & coins Fileteado */}
         <div className="h-[3px] w-full bg-gradient-to-r from-[#d4af37] via-[#f5d77f] to-[#d4af37]" />
+        <FileteadoBorderOverlay />
 
         {/* Bandeau d'en-tête façon salon prestigieux */}
         <div className={`p-5 sm:p-6 text-[#f7f2e7] relative border-b border-[#d4af37]/30 ${
@@ -90,8 +135,25 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 <MapPin className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
                 {event.address}, <span className="font-semibold text-[#f7f2e7]">{event.city}</span> ({event.postalCode})
               </p>
-              <p className="text-xs text-[#fce59e] mt-1 font-semibold capitalize">
-                📅 {formatEventDate(event.date, true)} · {event.startTime}
+              <p className="text-xs text-[#fce59e] mt-1 font-semibold capitalize flex items-center gap-2 flex-wrap">
+                <span>📅 {formatEventDate(event.date, true)} · {event.startTime} - {event.endTime}</span>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border tracking-tight ${
+                    danceTime.colorScheme === 'green'
+                      ? 'bg-emerald-950 text-emerald-300 border-emerald-400'
+                      : danceTime.colorScheme === 'orange'
+                      ? 'bg-amber-950 text-amber-300 border-amber-400'
+                      : 'bg-rose-950 text-rose-200 border-rose-400 animate-pulse'
+                  }`}
+                >
+                  <Music className="w-3 h-3" />
+                  <span>{danceTime.badgeLabel}</span>
+                </span>
+                {event.detourKm !== undefined && (
+                  <span className="text-[10px] text-amber-200/80 font-mono">
+                    +{event.detourKm} km ({detourTandas.shortBadgeText})
+                  </span>
+                )}
               </p>
             </div>
 
@@ -306,40 +368,128 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             </section>
           )}
 
-          {/* GUIDAGE GPS DIRECT */}
+          {/* 4. MÉMO DERNIER KILOMÈTRE (PARKING, CODE D'ACCÈS, SOL) */}
+          <section className="bg-[#150d0b] rounded-2xl p-4 border border-[#d4af37]/35 shadow-inner space-y-3 animate-bandoneon">
+            <div className="flex items-center justify-between border-b border-[#d4af37]/20 pb-2">
+              <h3 className="text-xs font-bold font-display uppercase tracking-wide text-[#f5d77f] flex items-center gap-1.5">
+                <Key className="w-4 h-4 text-[#F4A261]" />
+                Mémo Dernier Kilomètre (Enregistré sur votre appareil)
+              </h3>
+              <span className="text-[10px] text-amber-200/50 uppercase tracking-widest font-mono">Pratique</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Qualité du sol */}
+              <div>
+                <span className="block text-[11px] font-semibold text-amber-200/80 mb-1">
+                  Qualité du parquet :
+                </span>
+                <div className="grid grid-cols-3 gap-1">
+                  {[
+                    { id: 'glissant', label: 'Glissant ⛸️' },
+                    { id: 'normal', label: 'Normal 👟' },
+                    { id: 'accrocheur', label: 'Accrocheur 🧲' },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => handleUpdateMemo({ floorQuality: s.id as any })}
+                      className={`px-1 py-1 rounded text-[10px] font-bold border transition cursor-pointer text-center ${
+                        lastMileMemo.floorQuality === s.id
+                          ? 'bg-[#E63946] text-white border-[#F4A261]'
+                          : 'bg-[#1b1210] text-amber-200/70 border-[#d4af37]/30'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Code d'accès / digicode */}
+              <div>
+                <span className="block text-[11px] font-semibold text-amber-200/80 mb-1">
+                  Digicode / Accès :
+                </span>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="Code porte, interphone..."
+                    value={lastMileMemo.accessCode}
+                    onChange={(e) => handleUpdateMemo({ accessCode: e.target.value })}
+                    className="w-full px-2.5 py-1 rounded-lg bg-[#1b1210] border border-[#d4af37]/40 text-xs text-[#F8F9FA] focus:border-[#F4A261] outline-none"
+                  />
+                  {lastMileMemo.accessCode && (
+                    <button
+                      type="button"
+                      onClick={handleCopyCode}
+                      className="px-2 py-1 rounded-lg bg-[#242436] hover:bg-[#32324a] border border-[#d4af37]/40 text-amber-300 hover:text-white shrink-0 cursor-pointer"
+                      title="Copier le code"
+                    >
+                      {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Infos Parking */}
+              <div>
+                <span className="block text-[11px] font-semibold text-amber-200/80 mb-1">
+                  Infos Stationnement :
+                </span>
+                <input
+                  type="text"
+                  placeholder="Ex: Rue calme, cour intérieure..."
+                  value={lastMileMemo.parkingInfo}
+                  onChange={(e) => handleUpdateMemo({ parkingInfo: e.target.value })}
+                  className="w-full px-2.5 py-1 rounded-lg bg-[#1b1210] border border-[#d4af37]/40 text-xs text-[#F8F9FA] focus:border-[#F4A261] outline-none"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* 1. LANCEURS DE NAVIGATION UNIVERSELS (Compatibles Android Auto & Waze / Google Maps) */}
           <div className="pt-2">
-            <h4 className="text-xs font-bold font-display uppercase tracking-wider text-[#f5d77f] mb-2 flex items-center gap-1.5">
-              <Navigation className="w-4 h-4 text-[#d4af37]" />
-              Lancer la navigation immédiate
+            <h4 className="text-xs font-bold font-display uppercase tracking-wider text-[#f5d77f] mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Navigation className="w-4 h-4 text-[#F4A261]" />
+                Lancer la navigation immédiate (Android Auto & Mobile)
+              </span>
+              <span className="text-[10px] text-amber-200/60 font-mono">1 clic direct</span>
             </h4>
-            <div className="grid grid-cols-3 gap-2.5">
-              <a
-                href={gpsLinks.waze}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-3 px-3 rounded-xl bg-[#211412] hover:bg-[#8e1c2e] border border-[#d4af37]/50 hover:border-[#d4af37] text-[#fce59e] font-bold text-xs sm:text-sm text-center flex flex-col items-center justify-center gap-1 transition shadow-sm"
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleLaunchNav('waze', gpsLinks.waze)}
+                className={`py-3.5 px-4 rounded-2xl bg-[#E63946] hover:bg-[#cf2936] border-2 border-[#F4A261]/60 text-white font-bold text-sm text-center flex items-center justify-center gap-2.5 transition shadow-lg cursor-pointer ${
+                  launchingApp === 'waze' ? 'animate-tango-launch ring-4 ring-[#F4A261]' : ''
+                }`}
               >
-                <span>Waze</span>
-                <span className="text-[10px] font-normal text-amber-200/60">Guidage temps réel</span>
-              </a>
-              <a
-                href={gpsLinks.googleMaps}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-3 px-3 rounded-xl bg-[#211412] hover:bg-[#8e1c2e] border border-[#d4af37]/50 hover:border-[#d4af37] text-[#fce59e] font-bold text-xs sm:text-sm text-center flex flex-col items-center justify-center gap-1 transition shadow-sm"
+                <Navigation className="w-5 h-5 shrink-0" />
+                <div className="text-left">
+                  <div className="font-extrabold uppercase tracking-wide">
+                    {launchingApp === 'waze' ? '🎶 DÉPART EN COURS...' : 'LANCER WAZE'}
+                  </div>
+                  <div className="text-[10px] text-white/80 font-normal">Guidage temps réel & alertes</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleLaunchNav('maps', gpsLinks.googleMaps)}
+                className={`py-3.5 px-4 rounded-2xl bg-[#1A1A24] hover:bg-[#252536] border-2 border-[#F4A261]/60 text-[#F4A261] font-bold text-sm text-center flex items-center justify-center gap-2.5 transition shadow-lg cursor-pointer ${
+                  launchingApp === 'maps' ? 'animate-tango-launch ring-4 ring-[#F4A261]' : ''
+                }`}
               >
-                <span>Google Maps</span>
-                <span className="text-[10px] font-normal text-amber-200/60">Calcul GPS</span>
-              </a>
-              <a
-                href={gpsLinks.appleMaps}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-3 px-3 rounded-xl bg-[#211412] hover:bg-[#8e1c2e] border border-[#d4af37]/50 hover:border-[#d4af37] text-[#fce59e] font-bold text-xs sm:text-sm text-center flex flex-col items-center justify-center gap-1 transition shadow-sm"
-              >
-                <span>Apple Maps</span>
-                <span className="text-[10px] font-normal text-amber-200/60">Plans iOS</span>
-              </a>
+                <MapPin className="w-5 h-5 shrink-0 text-[#F4A261]" />
+                <div className="text-left">
+                  <div className="font-extrabold uppercase tracking-wide">
+                    {launchingApp === 'maps' ? '🎶 DÉPART EN COURS...' : 'LANCER GOOGLE MAPS'}
+                  </div>
+                  <div className="text-[10px] text-amber-200/70 font-normal">Android Auto & CarPlay</div>
+                </div>
+              </button>
             </div>
           </div>
 

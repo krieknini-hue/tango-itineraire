@@ -11,11 +11,13 @@ import {
   Edit3,
   Info,
   Sparkles,
+  MapPin,
 } from 'lucide-react';
 import type { TangoEvent, CityLocation, RouteResult } from '../../types/tango';
 import { FRENCH_CITIES } from '../../data/frenchCities';
 import { TangoMap } from '../TangoMap';
 import { getGpsNavigationLinks } from '../../services/routingService';
+import { formatDurationToTandas, calculateRemainingDanceTime } from '../../modules/tangoMetrics';
 
 interface TunnelCockpitCarplayProps {
   step: 1 | 2 | 3;
@@ -295,14 +297,33 @@ export const TunnelCockpitCarplay: React.FC<TunnelCockpitCarplayProps> = ({
                       </span>
                       {activeStop.detourKm !== undefined && (
                         <span className="px-3.5 py-1 rounded-xl bg-[#120b0a] text-amber-300 font-mono font-extrabold text-base border border-[#d4af37]/50">
-                          DÉTOUR +{activeStop.detourKm} KM (~{activeStop.detourMinutes} MIN)
+                          DÉTOUR +{activeStop.detourKm} KM ({formatDurationToTandas(activeStop.detourMinutes || 15).shortBadgeText})
                         </span>
                       )}
                     </div>
 
-                    <h3 className="font-tango-serif text-2xl sm:text-3xl font-bold text-[#f5d77f] leading-tight">
-                      {activeStop.title}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-tango-serif text-2xl sm:text-3xl font-bold text-[#f5d77f] leading-tight">
+                        {activeStop.title}
+                      </h3>
+                      {/* Badge Temps de Danse Restant */}
+                      {(() => {
+                        const dance = calculateRemainingDanceTime(activeStop, activeStop.detourMinutes || 0);
+                        return (
+                          <span
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${
+                              dance.colorScheme === 'green'
+                                ? 'bg-emerald-950 text-emerald-300 border-emerald-400'
+                                : dance.colorScheme === 'orange'
+                                ? 'bg-amber-950 text-amber-300 border-amber-400'
+                                : 'bg-rose-950 text-rose-200 border-rose-400'
+                            }`}
+                          >
+                            {dance.badgeLabel}
+                          </span>
+                        );
+                      })()}
+                    </div>
 
                     {/* Pavés d'infos rapides très lisibles */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
@@ -342,19 +363,20 @@ export const TunnelCockpitCarplay: React.FC<TunnelCockpitCarplayProps> = ({
                       href={getGpsNavigationLinks(activeStop).waze}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-4 px-4 rounded-2xl bg-[#8e1c2e] hover:bg-[#a82237] text-[#fce59e] border-2 border-[#d4af37] font-display font-bold text-base text-center flex items-center justify-center gap-2 shadow-xl transition"
+                      className="py-4 px-4 rounded-2xl bg-[#E63946] hover:bg-[#cf2936] text-white border-2 border-[#F4A261] font-display font-bold text-base text-center flex items-center justify-center gap-2 shadow-xl transition"
                     >
                       <Navigation className="w-5 h-5 rotate-45" />
-                      <span>WAZE DIRECT</span>
+                      <span>LANCER WAZE</span>
                     </a>
 
                     <a
                       href={getGpsNavigationLinks(activeStop).googleMaps}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-4 px-4 rounded-2xl bg-[#120b0a] hover:bg-[#251815] text-[#fce59e] border-2 border-[#d4af37] font-display font-bold text-base text-center flex items-center justify-center gap-2 shadow-xl transition"
+                      className="py-4 px-4 rounded-2xl bg-[#1A1A24] hover:bg-[#252536] text-[#F4A261] border-2 border-[#F4A261] font-display font-bold text-base text-center flex items-center justify-center gap-2 shadow-xl transition"
                     >
-                      <span>GOOGLE MAPS</span>
+                      <MapPin className="w-5 h-5 text-[#F4A261]" />
+                      <span>LANCER GOOGLE MAPS</span>
                     </a>
 
                     <button

@@ -125,3 +125,81 @@ export const BandoneonIcon: React.FC<{ className?: string }> = ({
     </svg>
   );
 };
+
+// 3. LOADER "OCHO" TANGO (Tracé en boucle continue en 8)
+export const OchoLoader: React.FC<{
+  size?: number;
+  className?: string;
+  label?: string;
+}> = ({ size = 48, className = '', label = 'Recherche en cours...' }) => {
+  return (
+    <div className={`flex flex-col items-center justify-center gap-2.5 ${className}`}>
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="text-[#F4A261] filter drop-shadow-[0_0_8px_rgba(244,162,97,0.4)]"
+      >
+        {/* Tracé de fond semi-transparent */}
+        <path
+          d="M32 32 C20 18, 12 24, 12 32 C12 40, 20 46, 32 32 C44 18, 52 24, 52 32 C52 40, 44 46, 32 32 Z"
+          stroke="rgba(244, 162, 97, 0.2)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Boucle animée du Ocho (le pas fondamental en 8) */}
+        <path
+          d="M32 32 C20 18, 12 24, 12 32 C12 40, 20 46, 32 32 C44 18, 52 24, 52 32 C52 40, 44 46, 32 32 Z"
+          stroke="#F4A261"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="animate-ocho-trace"
+        />
+        {/* Centre lumineux de pivot */}
+        <circle cx="32" cy="32" r="2.5" fill="#E63946" className="animate-pulse" />
+      </svg>
+      {label && (
+        <span className="text-xs font-display font-semibold tracking-wider text-[#F4A261] uppercase animate-pulse">
+          {label}
+        </span>
+      )}
+    </div>
+  );
+};
+
+// 1. ORNEMENTS FILETEADO PORTEÑO POUR CADRES & EN-TÊTES (SVG doré #F4A261, opacité 40%)
+export const FileteadoBorderOverlay: React.FC<{ className?: string }> = ({ className = '' }) => {
+  return (
+    <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
+      {/* Coin Supérieur Gauche */}
+      <svg
+        className="absolute top-1 left-1 w-6 h-6 text-[#F4A261]/40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M2 18V6C2 3.79 3.79 2 6 2H18" strokeLinecap="round" />
+        <path d="M2 10C5 10 8 7 8 2" strokeLinecap="round" />
+        <circle cx="6" cy="6" r="1.5" fill="currentColor" />
+      </svg>
+      {/* Coin Supérieur Droit */}
+      <svg
+        className="absolute top-1 right-1 w-6 h-6 text-[#F4A261]/40 scale-x-[-1]"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M2 18V6C2 3.79 3.79 2 6 2H18" strokeLinecap="round" />
+        <path d="M2 10C5 10 8 7 8 2" strokeLinecap="round" />
+        <circle cx="6" cy="6" r="1.5" fill="currentColor" />
+      </svg>
+    </div>
+  );
+};
+
